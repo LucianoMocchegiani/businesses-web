@@ -36,7 +36,7 @@ export interface UseSalesReturn {
   handlePageSizeChange: (pageSize: number) => void;
 }
 
-export const useSales = (businessId: string): UseSalesReturn => {
+export const useSales = (): UseSalesReturn => {
   const [sales, setSales] = useState<SaleEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,7 +55,6 @@ export const useSales = (businessId: string): UseSalesReturn => {
     try {
       setLoading(true);
       const searchParams: GetSalesParams = {
-        businessId,
         page: pagination.page,
         limit: pagination.limit,
         ...params
@@ -78,10 +77,8 @@ export const useSales = (businessId: string): UseSalesReturn => {
   };
 
   useEffect(() => {
-    if (businessId) {
-      loadSales();
-    }
-  }, [businessId, pagination.page, pagination.limit]);
+    loadSales();
+  }, [pagination.page, pagination.limit]);
 
   const handleCreate = () => {
     setSelectedSale(null);
@@ -149,7 +146,6 @@ export const useSales = (businessId: string): UseSalesReturn => {
   const handleSubmit = async (data: SaleFormData) => {
     try {
       const saleData = {
-        businessId,
         customerId: data.customerId,
         customerName: data.customerName,
         totalAmount: data.totalAmount,

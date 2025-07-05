@@ -2,7 +2,7 @@ import { apiService } from './apiService';
 import { SaleEntity, SaleStatus } from '@/types/business';
 
 export interface CreateSaleRequest {
-  businessId: string;
+  // businessId ahora viene del header x-business-id
   customerId?: string;
   customerName?: string;
   totalAmount?: number;
@@ -21,7 +21,7 @@ export interface UpdateSaleRequest extends Partial<CreateSaleRequest> {
 }
 
 export interface GetSalesParams {
-  businessId: string;
+  // businessId ahora viene del header x-business-id
   page?: number;
   limit?: number;
   orderBy?: 'customerName' | 'totalAmount' | 'status' | 'createdAt' | 'updatedAt';
@@ -48,8 +48,23 @@ class SaleService {
 
   async getAll(params: GetSalesParams): Promise<SalesResponse> {
     try {
-      // In a real implementation, this would call the backend API
-      const response = await apiService.get<SalesResponse>(this.endpoint);
+      // Construir query string excluyendo businessId
+      const queryParams = new URLSearchParams();
+      
+      if (params.page) queryParams.append('page', params.page.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (params.orderBy) queryParams.append('orderBy', params.orderBy);
+      if (params.orderDirection) queryParams.append('orderDirection', params.orderDirection);
+      if (params.customerName) queryParams.append('customerName', params.customerName);
+      if (params.totalAmount) queryParams.append('totalAmount', params.totalAmount.toString());
+      if (params.status) queryParams.append('status', params.status);
+      if (params.createdAt) queryParams.append('createdAt', params.createdAt);
+      if (params.updatedAt) queryParams.append('updatedAt', params.updatedAt);
+      
+      const queryString = queryParams.toString();
+      const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
+      
+      const response = await apiService.get<SalesResponse>(url);
       return response;
     } catch (error) {
       console.error('Error fetching sales:', error);
@@ -117,7 +132,7 @@ class SaleService {
     const mockSales: SaleEntity[] = [
       {
         id: '1',
-        businessId: params.businessId,
+        businessId: 'mock-business-id',
         customerId: '1',
         customerName: 'Juan Pérez',
         totalAmount: 150.00,
@@ -138,7 +153,7 @@ class SaleService {
       },
       {
         id: '2',
-        businessId: params.businessId,
+        businessId: 'mock-business-id',
         customerId: '2',
         customerName: 'María García',
         totalAmount: 75.50,
@@ -168,7 +183,7 @@ class SaleService {
       },
       {
         id: '3',
-        businessId: params.businessId,
+        businessId: 'mock-business-id',
         customerId: '3',
         customerName: 'Carlos López',
         totalAmount: 299.99,
@@ -189,7 +204,7 @@ class SaleService {
       },
       {
         id: '4',
-        businessId: params.businessId,
+        businessId: 'mock-business-id',
         customerName: 'Venta sin cliente registrado',
         totalAmount: 45.00,
         status: 'COMPLETED',
@@ -279,7 +294,7 @@ class SaleService {
   }
 
   private getMockSaleById(id: string): SaleEntity {
-    const mockSales = this.getMockSales({ businessId: 'mock-business' });
+    const mockSales = this.getMockSales({});
     const sale = mockSales.data.find(s => s.id === id);
     if (!sale) {
       throw new Error(`Sale with id ${id} not found`);
@@ -290,7 +305,7 @@ class SaleService {
   private createMockSale(data: CreateSaleRequest): SaleEntity {
     const newSale: SaleEntity = {
       id: Math.random().toString(36).substr(2, 9),
-      businessId: data.businessId,
+      businessId: 'mock-business-id',
       customerId: data.customerId,
       customerName: data.customerName || '',
       totalAmount: data.totalAmount || data.saleDetails.reduce((sum, detail) => sum + (detail.totalAmount || detail.quantity * detail.price), 0),

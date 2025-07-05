@@ -12,9 +12,6 @@ import { useSales } from './hooks';
 import { SaleTable, SaleDialog } from './components';
 
 export const SalesScreen: React.FC = () => {
-  // Mock business ID - in a real app, this would come from auth context or route params
-  const businessId = 'mock-business-id';
-
   const {
     // State
     sales,
@@ -38,7 +35,7 @@ export const SalesScreen: React.FC = () => {
     handleSubmit,
     handlePageChange,
     handlePageSizeChange,
-  } = useSales(businessId);
+  } = useSales();
 
   return (
     <ScreenContainer>

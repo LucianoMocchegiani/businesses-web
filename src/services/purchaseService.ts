@@ -7,7 +7,7 @@ import {
 } from '@/screens/business/purchases/types';
 
 export interface CreatePurchaseRequest {
-  businessId: string;
+  // businessId ahora viene del header x-business-id
   supplierId?: string;
   supplierName?: string;
   totalAmount?: number;
@@ -33,7 +33,7 @@ export interface UpdatePurchaseRequest extends Partial<CreatePurchaseRequest> {
 }
 
 export interface GetPurchasesParams {
-  businessId: string;
+  // businessId ahora viene del header x-business-id
   page?: number;
   limit?: number;
   orderBy?: 'supplierName' | 'totalAmount' | 'status' | 'createdAt' | 'updatedAt';
@@ -76,8 +76,23 @@ class PurchaseService {
 
   async getAll(params: GetPurchasesParams): Promise<PurchasesResponse> {
     try {
-      // In a real implementation, this would call the backend API
-      const response = await apiService.get<PurchasesResponse>(`${this.endpoint}?${new URLSearchParams(params as any).toString()}`);
+      // Construir query string excluyendo businessId
+      const queryParams = new URLSearchParams();
+      
+      if (params.page) queryParams.append('page', params.page.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (params.orderBy) queryParams.append('orderBy', params.orderBy);
+      if (params.orderDirection) queryParams.append('orderDirection', params.orderDirection);
+      if (params.supplierName) queryParams.append('supplierName', params.supplierName);
+      if (params.totalAmount) queryParams.append('totalAmount', params.totalAmount.toString());
+      if (params.status) queryParams.append('status', params.status);
+      if (params.createdAt) queryParams.append('createdAt', params.createdAt);
+      if (params.updatedAt) queryParams.append('updatedAt', params.updatedAt);
+      
+      const queryString = queryParams.toString();
+      const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
+      
+      const response = await apiService.get<PurchasesResponse>(url);
       return response;
     } catch (error) {
       console.error('Error fetching purchases:', error);
@@ -243,7 +258,7 @@ class PurchaseService {
     const mockPurchases: PurchaseEntity[] = [
       {
         id: '1',
-        businessId: params.businessId,
+        businessId: 'mock-business-id',
         supplierId: '1',
         supplierName: 'TechDistribuidor S.A.',
         totalAmount: 2500.00,
@@ -278,7 +293,7 @@ class PurchaseService {
       },
       {
         id: '2',
-        businessId: params.businessId,
+        businessId: 'mock-business-id',
         supplierId: '2',
         supplierName: 'Componentes Pro',
         totalAmount: 850.00,
@@ -312,7 +327,7 @@ class PurchaseService {
       },
       {
         id: '3',
-        businessId: params.businessId,
+        businessId: 'mock-business-id',
         supplierId: '3',
         supplierName: 'ElectroSuministros',
         totalAmount: 320.75,
@@ -335,7 +350,7 @@ class PurchaseService {
       },
       {
         id: '4',
-        businessId: params.businessId,
+        businessId: 'mock-business-id',
         supplierName: 'Compra sin proveedor registrado',
         totalAmount: 180.00,
         status: 'COMPLETED',
@@ -427,7 +442,7 @@ class PurchaseService {
   }
 
   private getMockPurchaseById(id: string): PurchaseEntity {
-    const mockPurchases = this.getMockPurchases({ businessId: 'mock-business' });
+    const mockPurchases = this.getMockPurchases({});
     const purchase = mockPurchases.data.find(p => p.id === id);
     if (!purchase) {
       throw new Error(`Purchase with id ${id} not found`);
@@ -438,7 +453,7 @@ class PurchaseService {
   private createMockPurchase(data: CreatePurchaseRequest): PurchaseEntity {
     const newPurchase: PurchaseEntity = {
       id: Math.random().toString(36).substr(2, 9),
-      businessId: data.businessId,
+      businessId: 'mock-business-id',
       supplierId: data.supplierId,
       supplierName: data.supplierName || '',
       totalAmount: data.totalAmount || data.purchaseDetails.reduce((sum, detail) => sum + (detail.totalAmount || detail.quantity * detail.price), 0),

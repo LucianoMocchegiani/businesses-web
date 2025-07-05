@@ -48,7 +48,6 @@ export const usePurchases = (): UsePurchasesReturn => {
     try {
       setLoading(true);
       const response = await purchaseService.getAll({
-        businessId: 'current-business-id', // This should come from auth context
         page: 1,
         limit: 100
       });
@@ -178,7 +177,6 @@ export const usePurchases = (): UsePurchasesReturn => {
 
       if (dialogMode === 'create') {
         await purchaseService.create({
-          businessId: 'current-business-id', // This should come from auth context
           supplierId: data.supplierId,
           supplierName: data.supplierName,
           totalAmount: data.totalAmount,
@@ -189,7 +187,6 @@ export const usePurchases = (): UsePurchasesReturn => {
       } else if (dialogMode === 'edit' && selectedPurchase) {
         await purchaseService.update({
           id: selectedPurchase.id,
-          businessId: 'current-business-id', // This should come from auth context
           supplierId: data.supplierId,
           supplierName: data.supplierName,
           totalAmount: data.totalAmount,

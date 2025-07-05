@@ -3,7 +3,8 @@ import { apiService } from './apiService';
 
 export const productService = {
   getAll: async (): Promise<Product[]> => {
-    return apiService.get<Product[]>('/products');
+    const response = await apiService.get<{ data: Product[] }>('/products');
+    return response.data;
   },
 
   getById: async (id: number): Promise<Product> => {
@@ -24,13 +25,18 @@ export const productService = {
 
   searchByBarcode: async (barcode: string): Promise<Product | null> => {
     try {
-      return await apiService.get<Product>(`/products/search/barcode/${barcode}`);
+      const response = await apiService.get<{ data: Product[] }>(`/products?barcode=${barcode}`);
+      return response.data[0] || null; // Devolver el primer resultado o null
     } catch (error) {
       return null; // Product not found
     }
   },
 
   getLowStock: async (): Promise<Product[]> => {
-    return apiService.get<Product[]>('/products/low-stock');
+    return apiService.get<Product[]>('/products/reports/low-stock');
+  },
+
+  getInventoryDetail: async (productId: string): Promise<any> => {
+    return apiService.get<any>(`/products/${productId}/inventory`);
   },
 };
