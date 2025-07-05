@@ -5,7 +5,6 @@ export interface CreateBusinessData {
   address?: string;
   phone?: string;
   owner_profile_name: string;
-  owner_user_id: number;
 }
 
 export interface BusinessWithProfile {

@@ -99,8 +99,7 @@ export const useBusinessSelection = (): UseBusinessSelectionReturn => {
         name: data.businessName,
         address: data.address,
         phone: data.phone,
-        owner_profile_name: data.ownerProfileName,
-        owner_user_id: user.user_id
+        owner_profile_name: data.ownerProfileName
       };
 
       const result = await businessService.createWithOwner(createBusinessData) as BusinessWithProfile;

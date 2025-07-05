@@ -1,6 +1,7 @@
 import { IconButton, Menu, MenuItem, Avatar, Typography } from '@mui/material';
-import { AccountCircle, Logout } from '@mui/icons-material';
+import { AccountCircle, Logout, Business } from '@mui/icons-material';
 import { useState, MouseEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export interface User {
   username?: string;
@@ -15,6 +16,7 @@ interface AccountButtonProps {
 
 export const AccountButton = ({ handleLogout, user }: AccountButtonProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
 
   const handleMenu = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -27,6 +29,11 @@ export const AccountButton = ({ handleLogout, user }: AccountButtonProps) => {
   const handleLogoutClick = () => {
     handleClose();
     handleLogout();
+  };
+
+  const handleBusinessProfilesClick = () => {
+    handleClose();
+    navigate('/business-selection');
   };
 
   return (
@@ -63,6 +70,10 @@ export const AccountButton = ({ handleLogout, user }: AccountButtonProps) => {
             </Typography>
           </MenuItem>
         )}
+        <MenuItem onClick={handleBusinessProfilesClick}>
+          <Business fontSize="small" sx={{ mr: 1 }} />
+          Perfiles de negocios
+        </MenuItem>
         <MenuItem onClick={handleLogoutClick}>
           <Logout fontSize="small" sx={{ mr: 1 }} />
           Cerrar Sesión

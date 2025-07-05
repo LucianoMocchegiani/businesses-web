@@ -4,42 +4,42 @@ import { useBusinessAuth } from '../../hooks/useBusinessAuth';
 const businessNavData = [
   {
     label: 'Dashboard',
-    path: '/',
+    path: '/business/dashboard',
     icon: 'dashboard',
   },
    {
     label: 'Ventas',
-    path: '/sales',
+    path: '/business/sales',
     icon: 'point_of_sale',
   },
   {
     label: 'Compras',
-    path: '/purchases',
+    path: '/business/purchases',
     icon: 'shopping_cart',
   },
   {
     label: 'Inventario',
-    path: '/inventory',
+    path: '/business/inventory',
     icon: 'warehouse',
   },
   {
     label: 'Productos',
-    path: '/products',
+    path: '/business/products',
     icon: 'inventory',
   },
   {
     label: 'Proveedores',
-    path: '/suppliers',
+    path: '/business/suppliers',
     icon: 'people',
   },
     {
     label: 'Clientes',
-    path: '/customers',
+    path: '/business/customers',
     icon: 'people',
   },
   {
     label: 'Configuración',
-    path: '/settings',
+    path: '/business/settings',
     icon: 'settings',
   },
 ];
