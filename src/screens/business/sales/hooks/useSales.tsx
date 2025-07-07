@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SaleEntity } from '@/types/business';
 import { saleService, GetSalesParams, SalesResponse } from '@/services/saleService';
 import { useSnackbar } from '@/hooks/useSnackbar';
@@ -51,33 +51,40 @@ export const useSales = (): UseSalesReturn => {
   
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
-  const loadSales = async (params?: Partial<GetSalesParams>) => {
+  const loadSales = useCallback(async (params?: Partial<GetSalesParams>) => {
     try {
       setLoading(true);
+      
+      // Use current pagination values at the time of call
+      const currentPage = params?.page ?? pagination.page;
+      const currentLimit = params?.limit ?? pagination.limit;
+      
       const searchParams: GetSalesParams = {
-        page: pagination.page,
-        limit: pagination.limit,
+        page: currentPage,
+        limit: currentLimit,
         ...params
       };
       
       const response: SalesResponse = await saleService.getAll(searchParams);
       setSales(response.data);
-      setPagination({
-        page: response.meta.page,
-        limit: response.meta.limit,
-        total: response.meta.total,
-        totalPages: response.meta.totalPages
-      });
+      
+      // Only update pagination metadata (total, totalPages) but not page/limit
+      // to avoid infinite loops
+      setPagination(prev => ({
+        ...prev,
+        total: response.total,
+        totalPages: response.lastPage
+      }));
     } catch (error) {
       showSnackbar('Error loading sales', 'error');
       console.error('Error loading sales:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Remove pagination dependencies
 
   useEffect(() => {
-    loadSales();
+    loadSales({ page: pagination.page, limit: pagination.limit });
   }, [pagination.page, pagination.limit]);
 
   const handleCreate = () => {
@@ -178,13 +185,13 @@ export const useSales = (): UseSalesReturn => {
     }
   };
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setPagination(prev => ({ ...prev, page }));
-  };
+  }, []);
 
-  const handlePageSizeChange = (pageSize: number) => {
+  const handlePageSizeChange = useCallback((pageSize: number) => {
     setPagination(prev => ({ ...prev, limit: pageSize, page: 1 }));
-  };
+  }, []);
 
   return {
     // State

@@ -39,8 +39,8 @@ export const useCustomers = (): UseCustomersReturn => {
   const loadCustomers = async () => {
     try {
       setLoading(true);
-      const data = await customerService.getAll();
-      setCustomers(data);
+      const response = await customerService.getAll({ limit: 1000 });
+      setCustomers(response.data);
     } catch (error) {
       showSnackbar('Error loading customers', 'error');
       console.error('Error loading customers:', error);

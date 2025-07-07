@@ -39,8 +39,8 @@ export const useProducts = (): UseProductsReturn => {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const data = await productService.getAll();
-      setProducts(data);
+      const response = await productService.getAll({ limit: 1000, include_stock: true });
+      setProducts(response.data);
     } catch (error) {
       showSnackbar('Error loading products', 'error');
       console.error('Error loading products:', error);

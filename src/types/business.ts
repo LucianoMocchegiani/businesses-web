@@ -15,13 +15,13 @@ export interface Product {
   id: number
   name: string
   description?: string
-  price: number
+  price?: number // Hacer opcional porque BusinessProduct no lo tiene
   cost?: number
   barcode?: string
-  category: string
+  category?: string // Hacer opcional porque BusinessProduct no lo tiene
   stock?: number
   minStock?: number
-  isActive: boolean
+  isActive?: boolean // Hacer opcional
   createdAt: Date
   updatedAt: Date
 }

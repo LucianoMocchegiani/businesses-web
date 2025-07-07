@@ -39,12 +39,13 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       field: 'category',
       headerName: 'Category',
       width: 150,
+      renderCell: (params) => params.value || '-',
     },
     {
       field: 'price',
       headerName: 'Price',
       width: 120,
-      renderCell: (params) => `$${params.value.toFixed(2)}`,
+      renderCell: (params) => params.value != null ? `$${params.value.toFixed(2)}` : '-',
     },
     {
       field: 'cost',
@@ -73,13 +74,16 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       field: 'isActive',
       headerName: 'Status',
       width: 100,
-      renderCell: (params) => (
-        <Chip
-          label={params.value ? 'Active' : 'Inactive'}
-          color={params.value ? 'success' : 'default'}
-          size="small"
-        />
-      ),
+      renderCell: (params) => {
+        const isActive = params.value !== false; // Default to true if undefined
+        return (
+          <Chip
+            label={isActive ? 'Active' : 'Inactive'}
+            color={isActive ? 'success' : 'default'}
+            size="small"
+          />
+        );
+      },
     },
     {
       field: 'actions',

@@ -47,12 +47,9 @@ export interface GetPurchasesParams {
 
 export interface PurchasesResponse {
   data: PurchaseEntity[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  total: number;
+  page: number;
+  lastPage: number;
 }
 
 export interface ReceivePurchaseRequest {
@@ -432,12 +429,9 @@ class PurchaseService {
 
     return {
       data: paginatedPurchases,
-      meta: {
-        total: filteredPurchases.length,
-        page,
-        limit,
-        totalPages: Math.ceil(filteredPurchases.length / limit)
-      }
+      total: filteredPurchases.length,
+      page,
+      lastPage: Math.ceil(filteredPurchases.length / limit)
     };
   }
 

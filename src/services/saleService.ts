@@ -35,12 +35,9 @@ export interface GetSalesParams {
 
 export interface SalesResponse {
   data: SaleEntity[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  total: number;
+  page: number;
+  lastPage: number;
 }
 
 class SaleService {
@@ -284,12 +281,9 @@ class SaleService {
 
     return {
       data: paginatedSales,
-      meta: {
-        total: filteredSales.length,
-        page,
-        limit,
-        totalPages: Math.ceil(filteredSales.length / limit)
-      }
+      total: filteredSales.length,
+      page,
+      lastPage: Math.ceil(filteredSales.length / limit)
     };
   }
 

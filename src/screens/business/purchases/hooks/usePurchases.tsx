@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PurchaseEntity } from '@/types/business';
-import { purchaseService } from '@/services/purchaseService';
+import { purchaseService, GetPurchasesParams, PurchasesResponse } from '@/services/purchaseService';
 import { useSnackbar } from '@/hooks/useSnackbar';
 import { PurchaseFormData, DialogMode } from '../types';
 
@@ -12,14 +12,20 @@ export interface UsePurchasesReturn {
   dialogMode: DialogMode;
   selectedPurchase: PurchaseEntity | null;
   receiveDialogOpen: boolean;
-  
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+
   // Snackbar
   snackbar: ReturnType<typeof useSnackbar>['snackbar'];
   showSnackbar: ReturnType<typeof useSnackbar>['showSnackbar'];
   hideSnackbar: ReturnType<typeof useSnackbar>['hideSnackbar'];
-  
+
   // Actions
-  loadPurchases: () => Promise<void>;
+  loadPurchases: (params?: Partial<GetPurchasesParams>) => Promise<void>;
   handleCreate: () => void;
   handleEdit: (purchase: PurchaseEntity) => void;
   handleView: (purchase: PurchaseEntity) => void;
@@ -32,6 +38,8 @@ export interface UsePurchasesReturn {
   handleCloseReceiveDialog: () => void;
   handleReceiveSubmit: (data: any) => Promise<void>;
   handleSubmit: (data: PurchaseFormData) => Promise<void>;
+  handlePageChange: (page: number) => void;
+  handlePageSizeChange: (pageSize: number) => void;
 }
 
 export const usePurchases = (): UsePurchasesReturn => {
@@ -41,24 +49,46 @@ export const usePurchases = (): UsePurchasesReturn => {
   const [dialogMode, setDialogMode] = useState<DialogMode>('create');
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseEntity | null>(null);
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
-  
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0
+  });
+
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
-  const loadPurchases = async () => {
+  const loadPurchases = useCallback(async (params?: Partial<GetPurchasesParams>) => {
     try {
       setLoading(true);
-      const response = await purchaseService.getAll({
-        page: 1,
-        limit: 100
-      });
+
+      // Use current pagination values at the time of call
+      const currentPage = params?.page ?? pagination.page;
+      const currentLimit = params?.limit ?? pagination.limit;
+
+      const searchParams: GetPurchasesParams = {
+        page: currentPage,
+        limit: currentLimit,
+        ...params
+      };
+
+      const response: PurchasesResponse = await purchaseService.getAll(searchParams);
       setPurchases(response.data);
+
+      // Only update pagination metadata (total, totalPages) but not page/limit
+      // to avoid infinite loops
+      setPagination(prev => ({
+        ...prev,
+        total: response.total,
+        totalPages: response.lastPage
+      }));
     } catch (error) {
       console.error('Error loading purchases:', error);
       showSnackbar('Error al cargar las compras', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Remove pagination dependencies
 
   const handleCreate = () => {
     setSelectedPurchase(null);
@@ -82,7 +112,7 @@ export const usePurchases = (): UsePurchasesReturn => {
     if (window.confirm(`¿Estás seguro de que deseas eliminar la compra de ${purchase.supplierName || 'Proveedor sin nombre'}?`)) {
       try {
         await purchaseService.delete(purchase.id);
-        await loadPurchases();
+        loadPurchases();
         showSnackbar('Compra eliminada exitosamente', 'success');
       } catch (error) {
         console.error('Error deleting purchase:', error);
@@ -95,7 +125,7 @@ export const usePurchases = (): UsePurchasesReturn => {
     if (window.confirm(`¿Estás seguro de que deseas cancelar la compra de ${purchase.supplierName || 'Proveedor sin nombre'}?`)) {
       try {
         await purchaseService.cancel(purchase.id);
-        await loadPurchases();
+        loadPurchases();
         showSnackbar('Compra cancelada exitosamente', 'success');
       } catch (error) {
         console.error('Error canceling purchase:', error);
@@ -107,7 +137,7 @@ export const usePurchases = (): UsePurchasesReturn => {
   const handleMarkInTransit = async (purchase: PurchaseEntity) => {
     try {
       await purchaseService.markAsInTransit(purchase.id);
-      await loadPurchases();
+      loadPurchases();
       showSnackbar('Compra marcada como en tránsito', 'success');
     } catch (error) {
       console.error('Error marking purchase as in transit:', error);
@@ -123,7 +153,7 @@ export const usePurchases = (): UsePurchasesReturn => {
   const handleComplete = async (purchase: PurchaseEntity) => {
     try {
       await purchaseService.completePurchase(purchase.id);
-      await loadPurchases();
+      loadPurchases();
       showSnackbar('Compra completada exitosamente', 'success');
     } catch (error) {
       console.error('Error completing purchase:', error);
@@ -138,7 +168,7 @@ export const usePurchases = (): UsePurchasesReturn => {
 
   const handleReceiveSubmit = async (receiveData: any) => {
     if (!selectedPurchase) return;
-    
+
     try {
       await purchaseService.receivePurchase({
         purchaseId: selectedPurchase.id,
@@ -146,7 +176,7 @@ export const usePurchases = (): UsePurchasesReturn => {
         actualDeliveryDate: new Date(),
         purchaseDetails: receiveData.purchaseDetails || []
       });
-      await loadPurchases();
+      loadPurchases();
       setReceiveDialogOpen(false);
       setSelectedPurchase(null);
       showSnackbar('Compra recibida exitosamente', 'success');
@@ -195,9 +225,9 @@ export const usePurchases = (): UsePurchasesReturn => {
         });
         showSnackbar('Compra actualizada exitosamente', 'success');
       }
-      
+
       handleCloseDialog();
-      await loadPurchases();
+      loadPurchases();
     } catch (error) {
       console.error('Error submitting purchase:', error);
       showSnackbar('Error al guardar la compra', 'error');
@@ -205,7 +235,15 @@ export const usePurchases = (): UsePurchasesReturn => {
   };
 
   useEffect(() => {
-    loadPurchases();
+    loadPurchases({ page: pagination.page, limit: pagination.limit });
+  }, [pagination.page, pagination.limit]);
+
+  const handlePageChange = useCallback((page: number) => {
+    setPagination(prev => ({ ...prev, page }));
+  }, []);
+
+  const handlePageSizeChange = useCallback((pageSize: number) => {
+    setPagination(prev => ({ ...prev, limit: pageSize, page: 1 }));
   }, []);
 
   return {
@@ -216,12 +254,13 @@ export const usePurchases = (): UsePurchasesReturn => {
     dialogMode,
     selectedPurchase,
     receiveDialogOpen,
-    
+    pagination,
+
     // Snackbar
     snackbar,
     showSnackbar,
     hideSnackbar,
-    
+
     // Actions
     loadPurchases,
     handleCreate,
@@ -236,5 +275,7 @@ export const usePurchases = (): UsePurchasesReturn => {
     handleCloseReceiveDialog,
     handleReceiveSubmit,
     handleSubmit,
+    handlePageChange,
+    handlePageSizeChange,
   };
 };

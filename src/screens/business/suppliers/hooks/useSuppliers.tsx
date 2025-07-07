@@ -39,8 +39,8 @@ export const useSuppliers = (): UseSuppliersReturn => {
   const loadSuppliers = async () => {
     try {
       setLoading(true);
-      const data = await supplierService.getAll();
-      setSuppliers(data);
+      const response = await supplierService.getAll({ limit: 1000 });
+      setSuppliers(response.data);
     } catch (error) {
       showSnackbar('Error loading suppliers', 'error');
       console.error('Error loading suppliers:', error);

@@ -39,20 +39,22 @@ export const useDashboard = () => {
       setLoading(true);
 
       // Load all necessary data
-      const [customers, products, salesResponse] = await Promise.all([
-        customerService.getAll(),
-        productService.getAll(),
-        saleService.getAll({ businessId: 'business-id' }),
+      const [customersResponse, productsResponse, salesResponse] = await Promise.all([
+        customerService.getAll({ limit: 1000 }), // Get all customers
+        productService.getAll({ limit: 1000, include_stock: true }), // Get all products with stock
+        saleService.getAll({ limit: 1000 }), // Get all sales
       ]);
 
+      const customers = customersResponse.data;
+      const products = productsResponse.data;
       const sales = salesResponse.data;
 
       // Calculate customer stats
-      const totalCustomers = customers.length;
+      const totalCustomers = customers.length 
       const activeCustomers = customers.filter(c => c.isActive).length;
 
       // Calculate product stats
-      const totalProducts = products.length;
+      const totalProducts = products.length 
       const lowStockProducts = products.filter(p => 
         (p.stock || 0) <= (p.minStock || 0)
       ).length;
@@ -103,7 +105,7 @@ export const useDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [showSnackbar]);
+  }, []);
 
   const updateQuickInsights = (dashboardStats: DashboardStats) => {
     const insights: QuickInsight[] = [
@@ -203,7 +205,7 @@ export const useDashboard = () => {
 
   const refresh = useCallback((options?: DashboardRefreshOptions) => {
     calculateStats(options);
-  }, [calculateStats]);
+  }, []);
 
   const updateFilters = useCallback((newFilters: Partial<DashboardFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -212,16 +214,16 @@ export const useDashboard = () => {
   // Load data on mount and when filters change
   useEffect(() => {
     calculateStats();
-  }, [calculateStats, filters]);
+  }, [filters]);
 
   // Auto-refresh every 5 minutes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      calculateStats();
-    }, 5 * 60 * 1000); // 5 minutes
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     calculateStats();
+  //   }, 5 * 60 * 1000); // 5 minutes
 
-    return () => clearInterval(interval);
-  }, [calculateStats]);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   return {
     // State

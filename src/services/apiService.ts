@@ -92,9 +92,8 @@ class ApiService {
       throw apiError
     }
 
-    // Si la respuesta tiene la estructura ApiResponse<T>, extraer data
     if (data && typeof data === 'object' && 'data' in data) {
-      return data.data
+      return data
     }
     
     return data
