@@ -18,11 +18,6 @@ const businessNavData = [
     icon: 'shopping_cart',
   },
   {
-    label: 'Inventario',
-    path: '/business/inventory',
-    icon: 'warehouse',
-  },
-  {
     label: 'Productos',
     path: '/business/products',
     icon: 'inventory',

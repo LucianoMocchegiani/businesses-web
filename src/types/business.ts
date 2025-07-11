@@ -1,5 +1,5 @@
 export interface Customer {
-  id: number
+  id: string 
   name: string
   email: string
   phone: string
@@ -12,7 +12,7 @@ export interface Customer {
 }
 
 export interface Product {
-  id: number
+  id: string
   name: string
   description?: string
   price?: number // Hacer opcional porque BusinessProduct no lo tiene

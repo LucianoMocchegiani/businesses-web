@@ -9,7 +9,6 @@ import { CustomersScreen } from '@/screens/business/customers'
 import { ProductsScreen } from '@/screens/business/products'
 import { SalesScreen } from '@/screens/business/sales'
 import { PurchasesScreen } from '@/screens/business/purchases'
-import { InventoryScreen } from '@/screens/business/inventory'
 import { SettingsScreen } from '@/screens/business/settings'
 import { SuppliersScreen } from '@/screens/business/suppliers'
 import { BusinessSelectionScreen, BusinessSelectionLayout } from '@/screens/business-selection'
@@ -43,7 +42,6 @@ export const App = () => {
         <Route path="suppliers" element={<SuppliersScreen />} />
         <Route path="sales" element={<SalesScreen />} />
         <Route path="purchases" element={<PurchasesScreen />} />
-        <Route path="inventory" element={<InventoryScreen />} />
         <Route path="settings" element={<SettingsScreen />} />
       </Route>
       <Route path="/" element={<Navigate to="/business-selection" replace />} />
