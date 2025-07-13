@@ -7,7 +7,6 @@ import {
 } from '@/screens/business/purchases/types';
 
 export interface CreatePurchaseRequest {
-  // businessId ahora viene del header x-business-id
   supplierId?: string;
   supplierName?: string;
   totalAmount?: number;
@@ -26,14 +25,12 @@ export interface CreatePurchaseRequest {
 
 export interface UpdatePurchaseRequest extends Partial<CreatePurchaseRequest> {
   id: string;
-  // Nuevos campos para recepción
   actualDeliveryDate?: string;
   receivedBy?: string;
   invoiceNumber?: string;
 }
 
 export interface GetPurchasesParams {
-  // businessId ahora viene del header x-business-id
   page?: number;
   limit?: number;
   orderBy?: 'supplierName' | 'totalAmount' | 'status' | 'createdAt' | 'updatedAt';
@@ -73,7 +70,7 @@ class PurchaseService {
 
   async getAll(params: GetPurchasesParams): Promise<PurchasesResponse> {
     try {
-      // Construir query string excluyendo businessId
+      // Construir query string
       const queryParams = new URLSearchParams();
       
       if (params.page) queryParams.append('page', params.page.toString());
@@ -89,45 +86,37 @@ class PurchaseService {
       const queryString = queryParams.toString();
       const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
       
-      const response = await apiService.get<PurchasesResponse>(url);
-      return response;
+      return apiService.get<PurchasesResponse>(url);
     } catch (error) {
       console.error('Error fetching purchases:', error);
-      // Mock data for development
-      return this.getMockPurchases(params);
+      throw error;
     }
   }
 
   async getById(id: string): Promise<PurchaseEntity> {
     try {
-      const response = await apiService.get<PurchaseEntity>(`${this.endpoint}/${id}`);
-      return response;
+      return apiService.get<PurchaseEntity>(`${this.endpoint}/${id}`);
     } catch (error) {
       console.error('Error fetching purchase:', error);
-      // Mock data for development
-      return this.getMockPurchaseById(id);
+      throw error;
     }
   }
 
   async create(data: CreatePurchaseRequest): Promise<PurchaseEntity> {
     try {
-      const response = await apiService.post<PurchaseEntity>(this.endpoint, data);
-      return response;
+      return apiService.post<PurchaseEntity>(this.endpoint, data);
     } catch (error) {
       console.error('Error creating purchase:', error);
-      // Mock implementation for development
-      return this.createMockPurchase(data);
+      throw error;
     }
   }
 
   async update(data: UpdatePurchaseRequest): Promise<PurchaseEntity> {
     try {
-      const response = await apiService.put<PurchaseEntity>(`${this.endpoint}/${data.id}`, data);
-      return response;
+      return apiService.put<PurchaseEntity>(`${this.endpoint}/${data.id}`, data);
     } catch (error) {
       console.error('Error updating purchase:', error);
-      // Mock implementation for development
-      return this.updateMockPurchase(data);
+      throw error;
     }
   }
 
@@ -136,19 +125,16 @@ class PurchaseService {
       await apiService.delete(`${this.endpoint}/${id}`);
     } catch (error) {
       console.error('Error deleting purchase:', error);
-      // Mock implementation for development
-      console.log('Mock: Purchase deleted successfully');
+      throw error;
     }
   }
 
   async cancel(id: string): Promise<PurchaseEntity> {
     try {
-      const response = await apiService.post<PurchaseEntity>(`${this.endpoint}/${id}/cancel`);
-      return response;
+      return apiService.post<PurchaseEntity>(`${this.endpoint}/${id}/cancel`);
     } catch (error) {
       console.error('Error canceling purchase:', error);
-      // Mock implementation for development
-      return this.cancelMockPurchase(id);
+      throw error;
     }
   }
 
@@ -170,7 +156,7 @@ class PurchaseService {
         productId: detail.productId,
         lotNumber: detail.lotNumber || this.generateLotNumber(detail.productId),
         quantity: detail.quantityReceived,
-        unitCost: this.getProductCostFromPurchase(request.purchaseId, detail.productId),
+        unitCost: this.getProductCostFromPurchase(updatedPurchase, detail.productId),
         entryDate: request.actualDeliveryDate,
         expirationDate: detail.expirationDate,
         supplierId: updatedPurchase.supplierId || '',
@@ -218,10 +204,9 @@ class PurchaseService {
   }
   
   // Obtener purchases por estado
-  async getPurchasesByStatus(params: { businessId: string; status: FormPurchaseStatus }): Promise<PurchasesResponse> {
+  async getPurchasesByStatus(status: FormPurchaseStatus): Promise<PurchasesResponse> {
     return this.getAll({
-      ...params,
-      status: params.status as PurchaseStatus
+      status: status as PurchaseStatus
     });
   }
   
@@ -240,273 +225,9 @@ class PurchaseService {
     return `LOT${dateStr}${productCode}${random}`;
   }
   
-  private getProductCostFromPurchase(purchaseId: string, productId: string): number {
-    try {
-      const purchase = this.getMockPurchaseById(purchaseId);
-      const detail = purchase.purchaseDetails.find(d => d.productId === productId);
-      return detail?.price || 0;
-    } catch {
-      return 0;
-    }
-  }
-
-  // Mock data methods for development
-  private getMockPurchases(params: GetPurchasesParams): PurchasesResponse {
-    const mockPurchases: PurchaseEntity[] = [
-      {
-        id: '1',
-        businessId: 'mock-business-id',
-        supplierId: '1',
-        supplierName: 'TechDistribuidor S.A.',
-        totalAmount: 2500.00,
-        status: 'COMPLETED',
-        createdAt: '2024-01-15T08:30:00Z',
-        updatedAt: '2024-01-15T08:30:00Z',
-        purchaseDetails: [
-          {
-            id: '1',
-            purchaseId: '1',
-            productId: '1',
-            productName: 'Laptop Dell Inspiron',
-            quantity: 5,
-            price: 450.00,
-            totalAmount: 2250.00,
-            lotNumber: 'LOT-2024-001',
-            entryDate: '2024-01-15T08:30:00Z',
-            expirationDate: '2026-01-15T00:00:00Z'
-          },
-          {
-            id: '2',
-            purchaseId: '1',
-            productId: '2',
-            productName: 'Mouse Inalámbrico',
-            quantity: 10,
-            price: 25.00,
-            totalAmount: 250.00,
-            lotNumber: 'LOT-2024-002',
-            entryDate: '2024-01-15T08:30:00Z'
-          }
-        ]
-      },
-      {
-        id: '2',
-        businessId: 'mock-business-id',
-        supplierId: '2',
-        supplierName: 'Componentes Pro',
-        totalAmount: 850.00,
-        status: 'PENDING',
-        createdAt: '2024-01-14T14:20:00Z',
-        updatedAt: '2024-01-14T14:20:00Z',
-        purchaseDetails: [
-          {
-            id: '3',
-            purchaseId: '2',
-            productId: '3',
-            productName: 'Teclado Mecánico',
-            quantity: 15,
-            price: 45.00,
-            totalAmount: 675.00,
-            lotNumber: 'LOT-2024-003',
-            entryDate: '2024-01-14T14:20:00Z'
-          },
-          {
-            id: '4',
-            purchaseId: '2',
-            productId: '4',
-            productName: 'Monitor 24"',
-            quantity: 1,
-            price: 175.00,
-            totalAmount: 175.00,
-            lotNumber: 'LOT-2024-004',
-            entryDate: '2024-01-14T14:20:00Z'
-          }
-        ]
-      },
-      {
-        id: '3',
-        businessId: 'mock-business-id',
-        supplierId: '3',
-        supplierName: 'ElectroSuministros',
-        totalAmount: 320.75,
-        status: 'COMPLETED',
-        createdAt: '2024-01-13T11:45:00Z',
-        updatedAt: '2024-01-13T11:45:00Z',
-        purchaseDetails: [
-          {
-            id: '5',
-            purchaseId: '3',
-            productId: '5',
-            productName: 'Cable HDMI 2m',
-            quantity: 25,
-            price: 12.83,
-            totalAmount: 320.75,
-            lotNumber: 'LOT-2024-005',
-            entryDate: '2024-01-13T11:45:00Z'
-          }
-        ]
-      },
-      {
-        id: '4',
-        businessId: 'mock-business-id',
-        supplierName: 'Compra sin proveedor registrado',
-        totalAmount: 180.00,
-        status: 'COMPLETED',
-        createdAt: '2024-01-12T16:30:00Z',
-        updatedAt: '2024-01-12T16:30:00Z',
-        purchaseDetails: [
-          {
-            id: '6',
-            purchaseId: '4',
-            productId: '6',
-            productName: 'Auriculares Bluetooth',
-            quantity: 6,
-            price: 30.00,
-            totalAmount: 180.00,
-            lotNumber: 'LOT-2024-006',
-            entryDate: '2024-01-12T16:30:00Z'
-          }
-        ]
-      }
-    ];
-
-    // Apply filters
-    let filteredPurchases = mockPurchases;
-    
-    if (params.supplierName) {
-      filteredPurchases = filteredPurchases.filter(purchase => 
-        purchase.supplierName?.toLowerCase().includes(params.supplierName!.toLowerCase())
-      );
-    }
-    
-    if (params.status) {
-      filteredPurchases = filteredPurchases.filter(purchase => purchase.status === params.status);
-    }
-    
-    if (params.totalAmount) {
-      filteredPurchases = filteredPurchases.filter(purchase => purchase.totalAmount === params.totalAmount);
-    }
-
-    // Apply sorting
-    const sortField = params.orderBy || 'createdAt';
-    const sortDirection = params.orderDirection || 'desc';
-    
-    filteredPurchases.sort((a, b) => {
-      let aValue: any, bValue: any;
-      
-      switch (sortField) {
-        case 'supplierName':
-          aValue = a.supplierName || '';
-          bValue = b.supplierName || '';
-          break;
-        case 'totalAmount':
-          aValue = a.totalAmount;
-          bValue = b.totalAmount;
-          break;
-        case 'status':
-          aValue = a.status;
-          bValue = b.status;
-          break;
-        case 'updatedAt':
-          aValue = new Date(a.updatedAt);
-          bValue = new Date(b.updatedAt);
-          break;
-        default: // createdAt
-          aValue = new Date(a.createdAt);
-          bValue = new Date(b.createdAt);
-      }
-      
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    // Apply pagination
-    const page = params.page || 1;
-    const limit = params.limit || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedPurchases = filteredPurchases.slice(startIndex, endIndex);
-
-    return {
-      data: paginatedPurchases,
-      total: filteredPurchases.length,
-      page,
-      lastPage: Math.ceil(filteredPurchases.length / limit)
-    };
-  }
-
-  private getMockPurchaseById(id: string): PurchaseEntity {
-    const mockPurchases = this.getMockPurchases({});
-    const purchase = mockPurchases.data.find(p => p.id === id);
-    if (!purchase) {
-      throw new Error(`Purchase with id ${id} not found`);
-    }
-    return purchase;
-  }
-
-  private createMockPurchase(data: CreatePurchaseRequest): PurchaseEntity {
-    const newPurchase: PurchaseEntity = {
-      id: Math.random().toString(36).substr(2, 9),
-      businessId: 'mock-business-id',
-      supplierId: data.supplierId,
-      supplierName: data.supplierName || '',
-      totalAmount: data.totalAmount || data.purchaseDetails.reduce((sum, detail) => sum + (detail.totalAmount || detail.quantity * detail.price), 0),
-      status: data.status || 'PENDING',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      purchaseDetails: data.purchaseDetails.map(detail => ({
-        id: Math.random().toString(36).substr(2, 9),
-        purchaseId: '', // Will be set after purchase creation
-        productId: detail.productId,
-        productName: detail.productName,
-        quantity: detail.quantity,
-        price: detail.price,
-        totalAmount: detail.totalAmount || detail.quantity * detail.price,
-        lotNumber: detail.lotNumber,
-        entryDate: detail.entryDate || new Date().toISOString(),
-        expirationDate: detail.expirationDate
-      }))
-    };
-
-    // Update purchaseId in details
-    newPurchase.purchaseDetails.forEach(detail => {
-      detail.purchaseId = newPurchase.id;
-    });
-
-    return newPurchase;
-  }
-
-  private updateMockPurchase(data: UpdatePurchaseRequest): PurchaseEntity {
-    // In a real implementation, this would update the purchase in the backend
-    const existingPurchase = this.getMockPurchaseById(data.id);
-    
-    return {
-      ...existingPurchase,
-      ...data,
-      id: existingPurchase.id, // Ensure ID doesn't change
-      updatedAt: new Date().toISOString(),
-      purchaseDetails: data.purchaseDetails ? data.purchaseDetails.map(detail => ({
-        id: detail.productId + '-' + data.id,
-        purchaseId: data.id,
-        productId: detail.productId,
-        productName: detail.productName,
-        quantity: detail.quantity,
-        price: detail.price,
-        totalAmount: detail.totalAmount || detail.quantity * detail.price,
-        lotNumber: detail.lotNumber,
-        entryDate: detail.entryDate || new Date().toISOString(),
-        expirationDate: detail.expirationDate
-      })) : existingPurchase.purchaseDetails
-    };
-  }
-
-  private cancelMockPurchase(id: string): PurchaseEntity {
-    const existingPurchase = this.getMockPurchaseById(id);
-    return {
-      ...existingPurchase,
-      status: 'CANCELED',
-      updatedAt: new Date().toISOString()
-    };
+  private getProductCostFromPurchase(purchase: PurchaseEntity, productId: string): number {
+    const detail = purchase.purchaseDetails.find(d => d.productId === productId);
+    return detail?.price || 0;
   }
 }
 

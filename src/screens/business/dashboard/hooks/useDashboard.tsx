@@ -41,7 +41,7 @@ export const useDashboard = () => {
       // Load all necessary data
       const [customersResponse, productsResponse, salesResponse] = await Promise.all([
         customerService.getAll({ limit: 1000 }), // Get all customers
-        productService.getAll({ limit: 1000, include_stock: true }), // Get all products with stock
+        productService.getAll({ limit: 1000, includeStock: true }), // Get all products with stock
         saleService.getAll({ limit: 1000 }), // Get all sales
       ]);
 

@@ -35,19 +35,34 @@ export interface BusinessWithProfile {
   };
 }
 
-export const businessService = {
+class BusinessService {
+  private readonly endpoint = '/businesses';
+
   // Obtener negocios donde el usuario tiene perfiles
   async getUserBusinesses(): Promise<BusinessWithProfile[]> {
-    return apiService.get<BusinessWithProfile[]>(`/businesses/user`);
-  },
-
-  // Crear negocio con perfil de owner
-  async createWithOwner(data: CreateBusinessData) {
-    return apiService.post('/businesses/with-owner', data);
-  },
+    return apiService.get<BusinessWithProfile[]>(`${this.endpoint}/user`);
+  }
 
   // Obtener negocio por ID
-  async getById(businessId: number) {
-    return apiService.get(`/businesses/${businessId}`);
+  async getById(businessId: number): Promise<any> {
+    return apiService.get(`${this.endpoint}/${businessId}`);
   }
-};
+
+  // Crear negocio con perfil de owner
+  async createWithOwner(data: CreateBusinessData): Promise<any> {
+    return apiService.post(`${this.endpoint}/with-owner`, data);
+  }
+
+  // Verificar si un usuario tiene negocios
+  async hasBusinesses(): Promise<boolean> {
+    try {
+      const businesses = await this.getUserBusinesses();
+      return businesses.length > 0;
+    } catch (error) {
+      console.error('Error checking user businesses:', error);
+      return false;
+    }
+  }
+}
+
+export const businessService = new BusinessService();

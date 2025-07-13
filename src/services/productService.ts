@@ -1,5 +1,6 @@
 import { Product } from '@/types/business';
 import { apiService } from './apiService';
+import { mapProductQueryParams, transformKeysToCamel } from '@/utils/transformUtils';
 
 export interface GetProductsParams {
   page?: number;
@@ -9,8 +10,12 @@ export interface GetProductsParams {
   name?: string;
   barcode?: string;
   category?: string;
-  include_stock?: boolean;
-  only_low_stock?: boolean;
+  includeStock?: boolean;
+  onlyLowStock?: boolean;
+  includeGlobal?: boolean;
+  includeBusiness?: boolean;
+  onlyWithInventory?: boolean;
+  isActive?: boolean;
 }
 
 export interface ProductsResponse {
@@ -20,30 +25,36 @@ export interface ProductsResponse {
   lastPage: number;
 }
 
-export const productService = {
-  getAll: async (params?: GetProductsParams): Promise<ProductsResponse> => {
+class ProductService {
+  private readonly endpoint = '/products';
+
+  async getAll(params?: GetProductsParams): Promise<ProductsResponse> {
     try {
-      // Construir query string
+      // Transformar parámetros a snake_case para el backend
+      const transformedParams = params ? mapProductQueryParams(params) : {};
+      
+      // Construir query string con parámetros transformados
       const queryParams = new URLSearchParams();
       
-      if (params?.page) queryParams.append('page', params.page.toString());
-      if (params?.limit) queryParams.append('limit', params.limit.toString());
-      if (params?.orderBy) queryParams.append('orderBy', params.orderBy);
-      if (params?.orderDirection) queryParams.append('orderDirection', params.orderDirection);
-      if (params?.name) queryParams.append('name', params.name);
-      if (params?.barcode) queryParams.append('barcode', params.barcode);
-      if (params?.category) queryParams.append('category', params.category);
-      if (params?.include_stock !== undefined) queryParams.append('include_stock', params.include_stock.toString());
-      if (params?.only_low_stock !== undefined) queryParams.append('only_low_stock', params.only_low_stock.toString());
+      Object.entries(transformedParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
       
       const queryString = queryParams.toString();
-      const url = queryString ? `/products?${queryString}` : '/products';
+      const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
       
       const response = await apiService.get<ProductsResponse>(url);
-      return response;
+      
+      // Transformar respuesta de snake_case a camelCase si es necesario
+      return {
+        ...response,
+        data: response.data.map(product => transformKeysToCamel(product) as Product)
+      };
     } catch (error) {
       console.error('Error fetching products:', error);
-      // Mock data for development
+      // Fallback para desarrollo
       return {
         data: [],
         total: 0,
@@ -51,38 +62,65 @@ export const productService = {
         lastPage: 0
       };
     }
-  },
+  }
 
-  getById: async (id: number): Promise<Product> => {
-    return apiService.get<Product>(`/products/${id}`);
-  },
+  async getById(id: string): Promise<Product> {
+    const response = await apiService.get<Product>(`${this.endpoint}/${id}`);
+    return transformKeysToCamel(response) as Product;
+  }
 
-  create: async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> => {
-    return apiService.post<Product>('/business-products', productData);
-  },
+  async create(productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> {
+    // Para crear productos, usamos el endpoint de business-products
+    const response = await apiService.post<Product>('/business-products', productData);
+    return transformKeysToCamel(response) as Product;
+  }
 
-  update: async (id: number, productData: Partial<Product>): Promise<Product> => {
-    return apiService.put<Product>(`/business-products/${id}`, productData);
-  },
+  async update(id: string, productData: Partial<Product>): Promise<Product> {
+    const response = await apiService.put<Product>(`/business-products/${id}`, productData);
+    return transformKeysToCamel(response) as Product;
+  }
 
-  delete: async (id: number): Promise<void> => {
+  async delete(id: string): Promise<void> {
     return apiService.delete<void>(`/business-products/${id}`);
-  },
+  }
 
-  searchByBarcode: async (barcode: string): Promise<Product | null> => {
+  // Buscar producto por código de barras
+  async searchByBarcode(barcode: string): Promise<Product | null> {
     try {
-      const response = await apiService.get<ProductsResponse>(`/products?barcode=${barcode}&limit=1`);
-      return response.data[0] || null; // Devolver el primer resultado o null
+      const response = await this.getAll({ barcode, limit: 1 });
+      return response.data[0] || null;
     } catch (error) {
-      return null; // Product not found
+      console.error('Error searching product by barcode:', error);
+      return null;
     }
-  },
+  }
 
-  getLowStock: async (): Promise<ProductsResponse> => {
-    return apiService.get<ProductsResponse>('/products?only_low_stock=true');
-  },
+  // Obtener productos con stock bajo
+  async getLowStock(): Promise<ProductsResponse> {
+    return this.getAll({ onlyLowStock: true });
+  }
 
-  getInventoryDetail: async (productId: string): Promise<any> => {
-    return apiService.get<any>(`/products/${productId}/inventory`);
-  },
-};
+  // Obtener detalle de inventario de producto
+  async getInventoryDetail(productId: string): Promise<any> {
+    try {
+      const response = await apiService.get<any>(`${this.endpoint}/${productId}/inventory`);
+      return transformKeysToCamel(response);
+    } catch (error) {
+      console.error('Error fetching inventory detail:', error);
+      return null;
+    }
+  }
+
+  // Verificar si existe un producto por código de barras
+  async existsByBarcode(barcode: string): Promise<boolean> {
+    try {
+      const product = await this.searchByBarcode(barcode);
+      return product !== null;
+    } catch (error) {
+      console.error('Error checking product by barcode:', error);
+      return false;
+    }
+  }
+}
+
+export const productService = new ProductService();

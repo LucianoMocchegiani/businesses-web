@@ -44,10 +44,13 @@ const mockProducts: ProductSearchResult[] = [
   },
 ];
 
-export class ProductSearchService {
-  static async searchProducts(query: string): Promise<ProductSearchResult[]> {
+class ProductSearchService {
+  private readonly mockDelay = 200; // Delay para simular API
+
+  // Buscar productos por query
+  async searchProducts(query: string): Promise<ProductSearchResult[]> {
     // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, this.mockDelay));
 
     const searchTerm = query.toLowerCase().trim();
     
@@ -88,23 +91,43 @@ export class ProductSearchService {
     }).slice(0, 10); // Limitar a 10 resultados
   }
 
-  static async getProductByBarcode(barcode: string): Promise<ProductSearchResult | null> {
+  // Obtener producto por código de barras
+  async getProductByBarcode(barcode: string): Promise<ProductSearchResult | null> {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const product = mockProducts.find(p => p.barcode === barcode);
     return product || null;
   }
 
-  static async getProductById(id: string): Promise<ProductSearchResult | null> {
+  // Obtener producto por ID
+  async getProductById(id: string): Promise<ProductSearchResult | null> {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const product = mockProducts.find(p => p.id === id);
     return product || null;
   }
 
+  // Verificar si existe un producto por código de barras
+  async existsByBarcode(barcode: string): Promise<boolean> {
+    try {
+      const product = await this.getProductByBarcode(barcode);
+      return product !== null;
+    } catch (error) {
+      console.error('Error checking product by barcode:', error);
+      return false;
+    }
+  }
+
+  // Obtener productos con stock bajo
+  async getLowStockProducts(): Promise<ProductSearchResult[]> {
+    await new Promise(resolve => setTimeout(resolve, this.mockDelay));
+    
+    return mockProducts.filter(product => product.stock < 20);
+  }
+
   // En producción, estos métodos harían llamadas reales a tu API:
   
-  // static async searchProducts(query: string): Promise<ProductSearchResult[]> {
+  // async searchProducts(query: string): Promise<ProductSearchResult[]> {
   //   try {
   //     const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
   //     if (!response.ok) throw new Error('Search failed');
@@ -115,7 +138,7 @@ export class ProductSearchService {
   //   }
   // }
 
-  // static async getProductByBarcode(barcode: string): Promise<ProductSearchResult | null> {
+  // async getProductByBarcode(barcode: string): Promise<ProductSearchResult | null> {
   //   try {
   //     const response = await fetch(`/api/products/barcode/${barcode}`);
   //     if (response.status === 404) return null;

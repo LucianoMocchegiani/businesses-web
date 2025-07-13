@@ -18,8 +18,10 @@ export interface CustomersResponse {
   lastPage: number;
 }
 
-export const customerService = {
-  getAll: async (params?: GetCustomersParams): Promise<CustomersResponse> => {
+class CustomerService {
+  private readonly endpoint = '/customers';
+
+  async getAll(params?: GetCustomersParams): Promise<CustomersResponse> {
     try {
       // Construir query string
       const queryParams = new URLSearchParams();
@@ -33,13 +35,12 @@ export const customerService = {
       if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
       
       const queryString = queryParams.toString();
-      const url = queryString ? `/customers?${queryString}` : '/customers';
+      const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
       
-      const response = await apiService.get<CustomersResponse>(url);
-      return response;
+      return apiService.get<CustomersResponse>(url);
     } catch (error) {
       console.error('Error fetching customers:', error);
-      // Mock data for development
+      // Fallback para desarrollo
       return {
         data: [],
         total: 0,
@@ -47,21 +48,39 @@ export const customerService = {
         lastPage: 0
       };
     }
-  },
+  }
 
-  getById: async (id: number): Promise<Customer> => {
-    return apiService.get<Customer>(`/customers/${id}`);
-  },
+  async getById(id: number): Promise<Customer> {
+    return apiService.get<Customer>(`${this.endpoint}/${id}`);
+  }
 
-  create: async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>): Promise<Customer> => {
-    return apiService.post<Customer>('/customers', customerData);
-  },
+  async create(customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>): Promise<Customer> {
+    return apiService.post<Customer>(this.endpoint, customerData);
+  }
 
-  update: async (id: number, customerData: Partial<Customer>): Promise<Customer> => {
-    return apiService.put<Customer>(`/customers/${id}`, customerData);
-  },
+  async update(id: number, customerData: Partial<Customer>): Promise<Customer> {
+    return apiService.put<Customer>(`${this.endpoint}/${id}`, customerData);
+  }
 
-  delete: async (id: number): Promise<void> => {
-    return apiService.delete<void>(`/customers/${id}`);
-  },
-};
+  async delete(id: number): Promise<void> {
+    return apiService.delete<void>(`${this.endpoint}/${id}`);
+  }
+
+  // Verificar si existe un cliente por email
+  async existsByEmail(email: string): Promise<boolean> {
+    try {
+      const response = await this.getAll({ email, limit: 1 });
+      return response.data.length > 0;
+    } catch (error) {
+      console.error('Error checking customer by email:', error);
+      return false;
+    }
+  }
+
+  // Buscar clientes activos
+  async getActiveCustomers(params?: Omit<GetCustomersParams, 'isActive'>): Promise<CustomersResponse> {
+    return this.getAll({ ...params, isActive: true });
+  }
+}
+
+export const customerService = new CustomerService();

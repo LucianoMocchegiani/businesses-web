@@ -18,8 +18,10 @@ export interface SuppliersResponse {
   lastPage: number;
 }
 
-export const supplierService = {
-  getAll: async (params?: GetSuppliersParams): Promise<SuppliersResponse> => {
+class SupplierService {
+  private readonly endpoint = '/suppliers';
+
+  async getAll(params?: GetSuppliersParams): Promise<SuppliersResponse> {
     try {
       // Construir query string
       const queryParams = new URLSearchParams();
@@ -33,13 +35,12 @@ export const supplierService = {
       if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
       
       const queryString = queryParams.toString();
-      const url = queryString ? `/suppliers?${queryString}` : '/suppliers';
+      const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
       
-      const response = await apiService.get<SuppliersResponse>(url);
-      return response;
+      return apiService.get<SuppliersResponse>(url);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
-      // Mock data for development
+      // Fallback para desarrollo
       return {
         data: [],
         total: 0,
@@ -47,21 +48,39 @@ export const supplierService = {
         lastPage: 0
       };
     }
-  },
+  }
 
-  getById: async (id: string): Promise<SupplierEntity> => {
-    return apiService.get<SupplierEntity>(`/suppliers/${id}`);
-  },
+  async getById(id: string): Promise<SupplierEntity> {
+    return apiService.get<SupplierEntity>(`${this.endpoint}/${id}`);
+  }
 
-  create: async (supplierData: Omit<SupplierEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<SupplierEntity> => {
-    return apiService.post<SupplierEntity>('/suppliers', supplierData);
-  },
+  async create(supplierData: Omit<SupplierEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<SupplierEntity> {
+    return apiService.post<SupplierEntity>(this.endpoint, supplierData);
+  }
 
-  update: async (id: string, supplierData: Partial<SupplierEntity>): Promise<SupplierEntity> => {
-    return apiService.put<SupplierEntity>(`/suppliers/${id}`, supplierData);
-  },
+  async update(id: string, supplierData: Partial<SupplierEntity>): Promise<SupplierEntity> {
+    return apiService.put<SupplierEntity>(`${this.endpoint}/${id}`, supplierData);
+  }
 
-  delete: async (id: string): Promise<void> => {
-    return apiService.delete<void>(`/suppliers/${id}`);
-  },
-};
+  async delete(id: string): Promise<void> {
+    return apiService.delete<void>(`${this.endpoint}/${id}`);
+  }
+
+  // Verificar si existe un proveedor por email
+  async existsByEmail(email: string): Promise<boolean> {
+    try {
+      const response = await this.getAll({ email, limit: 1 });
+      return response.data.length > 0;
+    } catch (error) {
+      console.error('Error checking supplier by email:', error);
+      return false;
+    }
+  }
+
+  // Buscar proveedores activos
+  async getActiveSuppliers(params?: Omit<GetSuppliersParams, 'isActive'>): Promise<SuppliersResponse> {
+    return this.getAll({ ...params, isActive: true });
+  }
+}
+
+export const supplierService = new SupplierService();

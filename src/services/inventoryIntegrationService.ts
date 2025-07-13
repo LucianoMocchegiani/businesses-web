@@ -1,8 +1,7 @@
 import { LotCreationData, InventoryMovement } from '@/screens/business/purchases/types';
 
-// Mock data para simulación de inventario
-let mockInventoryLots: InventoryLot[] = [];
-let mockStockMovements: StockMovement[] = [];
+// NOTA: Este servicio utiliza mock data para simulación
+// En producción, debería conectarse a un sistema de inventario real
 
 interface InventoryLot {
   id: string;
@@ -32,8 +31,11 @@ interface StockMovement {
   notes?: string;
 }
 
+// Mock data storage para simulación
+let mockInventoryLots: InventoryLot[] = [];
+let mockStockMovements: StockMovement[] = [];
+
 class InventoryIntegrationService {
-  
   // Crear lotes de inventario desde una compra
   async createLotsFromPurchase(purchaseId: string, lotData: LotCreationData[]): Promise<InventoryLot[]> {
     try {
@@ -41,7 +43,7 @@ class InventoryIntegrationService {
       
       for (const lot of lotData) {
         const inventoryLot: InventoryLot = {
-          id: `lot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: this.generateLotId(),
           productId: lot.productId,
           lotNumber: lot.lotNumber || this.generateLotNumber(lot.productId),
           quantity: lot.quantity,
@@ -84,7 +86,7 @@ class InventoryIntegrationService {
   async recordStockMovement(movement: InventoryMovement): Promise<StockMovement> {
     try {
       const stockMovement: StockMovement = {
-        id: `mov_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: this.generateMovementId(),
         type: movement.type,
         productId: movement.productId,
         lotNumber: movement.lotNumber,
@@ -119,7 +121,7 @@ class InventoryIntegrationService {
       
       console.log(`Product ${productId} stock updated: ${currentStock} units in ${availableLots} lots`);
       
-      // Aquí se actualizaría el stock en el servicio de productos
+      // En producción, aquí se actualizaría el stock en el servicio de productos
       // await productService.updateStock(productId, currentStock);
       
       return { currentStock, availableLots };
@@ -130,7 +132,7 @@ class InventoryIntegrationService {
     }
   }
   
-  // Consumir stock desde lotes (para ventas)
+  // Consumir stock desde lotes (para ventas) - FIFO
   async consumeStock(productId: string, quantity: number, saleId: string): Promise<{ consumedLots: InventoryLot[]; shortage: number }> {
     try {
       const availableLots = mockInventoryLots
@@ -196,7 +198,36 @@ class InventoryIntegrationService {
     return { available, lots: activeLots };
   }
   
-  // Generar número de lote automático
+  // Obtener lotes próximos a expirar
+  async getExpiringLots(days: number = 30): Promise<InventoryLot[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() + days);
+    
+    return mockInventoryLots.filter(lot => 
+      lot.status === 'ACTIVE' && 
+      lot.expirationDate && 
+      lot.expirationDate <= cutoffDate
+    );
+  }
+  
+  // Obtener historial de movimientos
+  async getStockHistory(productId?: string): Promise<StockMovement[]> {
+    const movements = productId 
+      ? mockStockMovements.filter(movement => movement.productId === productId)
+      : mockStockMovements;
+    
+    return movements.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+  
+  // Métodos auxiliares privados
+  private generateLotId(): string {
+    return `lot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  private generateMovementId(): string {
+    return `mov_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
   private generateLotNumber(productId: string): string {
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
@@ -206,7 +237,7 @@ class InventoryIntegrationService {
     return `LOT${dateStr}${productCode}${random}`;
   }
   
-  // Limpiar datos mock (para testing)
+  // Método para limpiar datos mock (útil para testing)
   clearMockData(): void {
     mockInventoryLots = [];
     mockStockMovements = [];
