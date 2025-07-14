@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { SaleFormData, SaleDetailFormData } from '../types';
 import { SaleEntity } from '@/types/business';
 import { ProductSearchResult } from '@/components/BarcodeScanner';
-import { ProductSearchService } from '@/services/productSearchService';
+import { productSearchService } from '@/services/productSearchService'; 
 
 interface UseSaleFormProps {
     initialData?: SaleEntity | null;
@@ -23,30 +23,30 @@ export interface UseSaleFormReturn {
 
 export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormReturn => {
     const [formData, setFormData] = useState<SaleFormData>({
-        customerId: '',
-        customerName: '',
-        totalAmount: 0,
+        customer_id: '',
+        customer_name: '',
+        total_amount: 0,
         status: 'PENDING',
-        saleDetails: [],
+        sale_details: [],
         notes: '',
     });
 
     const [newItem, setNewItem] = useState<Partial<SaleDetailFormData>>({
-        productId: '',
-        productName: '',
+        product_id: '',
+        product_name: '',
         quantity: 1,
         price: 0,
-        totalAmount: 0,
+        total_amount: 0,
     });
 
     useEffect(() => {
         if (initialData) {
             setFormData({
-                customerId: initialData.customerId || '',
-                customerName: initialData.customerName || '',
-                totalAmount: initialData.totalAmount,
+                customer_id: initialData.customer_id || '',
+                customer_name: initialData.customer_name || '',
+                total_amount: initialData.total_amount,
                 status: initialData.status,
-                saleDetails: initialData.saleDetails || [],
+                sale_details: initialData.sale_details || [],
                 notes: '',
             });
         }
@@ -54,8 +54,8 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
 
     // Function to calculate total amount from sale details
     const handleCalculateTotal = (saleDetails: SaleDetailFormData[]) => {
-        const total = saleDetails.reduce((sum, item) => sum + item.totalAmount, 0);
-        setFormData(prev => ({ ...prev, totalAmount: total }));
+        const total = saleDetails.reduce((sum, item) => sum + item.total_amount, 0);
+        setFormData(prev => ({ ...prev, total_amount: total }));
     }
 
     const handleInputChange = (field: keyof SaleFormData, value: any) => {
@@ -65,23 +65,23 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
 
     // Function to search products using the ProductSearchService
     const handleProductSearch = async (query: string): Promise<ProductSearchResult[]> => {
-        return await ProductSearchService.searchProducts(query);
+        return await productSearchService.searchProducts(query);
     };
 
     // Function to handle product selection from search results
     const handleProductSelect = (product: ProductSearchResult) => {
         // Check if product is already in the list
-        const existingItemIndex = formData.saleDetails.findIndex(
-            item => item.productId === product.id
+        const existingItemIndex = formData.sale_details.findIndex(
+            item => item.product_id === product.id
         );
 
         if (existingItemIndex >= 0) {
             // Increase quantity if product already exists
-            const updatedDetails = [...formData.saleDetails];
+            const updatedDetails = [...formData.sale_details];
             updatedDetails[existingItemIndex] = {
                 ...updatedDetails[existingItemIndex],
                 quantity: updatedDetails[existingItemIndex].quantity + 1,
-                totalAmount: (updatedDetails[existingItemIndex].quantity + 1) * updatedDetails[existingItemIndex].price,
+                total_amount: (updatedDetails[existingItemIndex].quantity + 1) * updatedDetails[existingItemIndex].price,
             };
 
             setFormData(prev => {
@@ -89,26 +89,26 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
                 handleCalculateTotal(updatedDetails);
                 return ({
                     ...prev,
-                    saleDetails: updatedDetails,
+                    sale_details: updatedDetails,
                 })
             });
 
         } else {
             // Add new product to the list
             const newSaleDetail: SaleDetailFormData = {
-                productId: product.id,
-                productName: product.name,
+                product_id: product.id,
+                product_name: product.name,
                 quantity: 1,
                 price: product.price,
-                totalAmount: product.price,
+                total_amount: product.price,
             };
 
             setFormData(prev => {
                 // Calculate total when items change
-                handleCalculateTotal([...prev.saleDetails, newSaleDetail]);
+                handleCalculateTotal([...prev.sale_details, newSaleDetail]);
                 return ({
                     ...prev,
-                    saleDetails: [...prev.saleDetails, newSaleDetail],
+                    sale_details: [...prev.sale_details, newSaleDetail],
                 });
             });
         }
@@ -118,14 +118,14 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
         if (customer) {
             setFormData(prev => ({
                 ...prev,
-                customerId: customer.id,
-                customerName: customer.name,
+                customer_id: customer.id,
+                customer_name: customer.name,
             }));
         } else {
             setFormData(prev => ({
                 ...prev,
-                customerId: '',
-                customerName: '',
+                customer_id: '',
+                customer_name: '',
             }));
         }
     };
@@ -133,34 +133,34 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
     // Function to handle product change in the select
     const handleProductChange = (product: any) => {
         // Check if product is already in the list
-        const existingItemIndex = formData.saleDetails.findIndex(
-            item => item.productId === product.id
+        const existingItemIndex = formData.sale_details.findIndex(
+            item => item.product_id === product.id
         );
         if (existingItemIndex >= 0) {
             // If product already exists, set new item to that product
-            const existingItem = formData.saleDetails[existingItemIndex];
+            const existingItem = formData.sale_details[existingItemIndex];
             setNewItem({
-                productId: existingItem.productId,
-                productName: existingItem.productName,
+                product_id: existingItem.product_id,
+                product_name: existingItem.product_name,
                 quantity: existingItem.quantity,
                 price: existingItem.price,
-                totalAmount: existingItem.totalAmount,
+                total_amount: existingItem.total_amount,
             });
         } else if (product) {
             setNewItem(prev => ({
                 ...prev,
-                productId: product.id,
-                productName: product.name,
+                product_id: product.id,
+                product_name: product.name,
                 price: product.price,
-                totalAmount: (prev.quantity || 1) * (product.price || 0),
+                total_amount: (prev.quantity || 1) * (product.price || 0),
             }));
         } else {
             setNewItem({
-                productId: '',
-                productName: '',
+                product_id: '',
+                product_name: '',
                 quantity: 1,
                 price: 0,
-                totalAmount: 0,
+                total_amount: 0,
             });
         }
     };
@@ -169,24 +169,24 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
         setNewItem(prev => ({
             ...prev,
             [field]: value,
-            totalAmount: (field==='quantity'? value * (prev.price || 0):(field==='price'? value * (prev.quantity || 1):prev.totalAmount)),
+            total_amount: (field==='quantity'? value * (prev.price || 0):(field==='price'? value * (prev.quantity || 1):prev.total_amount)),
         }));
     };
 
     const handleAddItem = () => {
-        if (newItem.productId && newItem.quantity && newItem.price) {
+        if (newItem.product_id && newItem.quantity && newItem.price) {
             // Check if product is already in the list
-            const existingItemIndex = formData.saleDetails.findIndex(
-                item => item.productId === newItem.productId
+            const existingItemIndex = formData.sale_details.findIndex(
+                item => item.product_id === newItem.product_id
             );
             if (existingItemIndex >= 0) {
                 // If product already exists, increase quantity
-                const updatedDetails = [...formData.saleDetails];
+                const updatedDetails = [...formData.sale_details];
                 updatedDetails[existingItemIndex] = {
                     ...updatedDetails[existingItemIndex],
                     quantity: (newItem.quantity || 1),
                     price: (newItem.price || 0),
-                    totalAmount: (newItem.quantity || 1) * (newItem.price || 0),
+                    total_amount: (newItem.quantity || 1) * (newItem.price || 0),
                 };
 
                 setFormData(prev => {
@@ -194,42 +194,42 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
                     handleCalculateTotal(updatedDetails);
                     return ({
                         ...prev,
-                        saleDetails: updatedDetails,
+                        sale_details: updatedDetails,
                     });
                 });
 
                 setNewItem({
-                    productId: '',
-                    productName: '',
+                    product_id: '',
+                    product_name: '',
                     quantity: 1,
                     price: 0,
-                    totalAmount: 0,
+                    total_amount: 0,
                 });
             } else {
                 // If product does not exist, add it as a new item
                 const item: SaleDetailFormData = {
-                    productId: newItem.productId!,
-                    productName: newItem.productName!,
+                    product_id: newItem.product_id!,
+                    product_name: newItem.product_name!,
                     quantity: newItem.quantity!,
                     price: newItem.price!,
-                    totalAmount: newItem.totalAmount!,
+                    total_amount: newItem.total_amount!,
                 };
 
                 setFormData(prev => {
                     // Calculate total when items change
-                    handleCalculateTotal([...prev.saleDetails, item]);
+                    handleCalculateTotal([...prev.sale_details, item]);
                     return ({
                         ...prev,
-                        saleDetails: [...prev.saleDetails, item],
+                        sale_details: [...prev.sale_details, item],
                     })
                 });
 
                 setNewItem({
-                    productId: '',
-                    productName: '',
+                    product_id: '',
+                    product_name: '',
                     quantity: 1,
                     price: 0,
-                    totalAmount: 0,
+                    total_amount: 0,
                 });
             }
         }
@@ -238,10 +238,10 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
     const handleRemoveItem = (index: number) => {
         setFormData(prev => {
             // Calculate total when items change
-            handleCalculateTotal(prev.saleDetails.filter((_, i) => i !== index));
+            handleCalculateTotal(prev.sale_details.filter((_, i) => i !== index));
             return ({
                 ...prev,
-                saleDetails: prev.saleDetails.filter((_, i) => i !== index),
+                sale_details: prev.sale_details.filter((_, i) => i !== index),
             })
         });
     };

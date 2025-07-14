@@ -110,7 +110,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         />
 
         <Controller
-          name="minStock"
+          name="min_stock"
           control={control}
           render={({ field }) => (
             <TextField

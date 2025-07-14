@@ -41,7 +41,7 @@ export const useDashboard = () => {
       // Load all necessary data
       const [customersResponse, productsResponse, salesResponse] = await Promise.all([
         customerService.getAll({ limit: 1000 }), // Get all customers
-        productService.getAll({ limit: 1000, includeStock: true }), // Get all products with stock
+        productService.getAll({ limit: 1000, include_stock: true }), // Get all products with stock
         saleService.getAll({ limit: 1000 }), // Get all sales
       ]);
 
@@ -51,17 +51,17 @@ export const useDashboard = () => {
 
       // Calculate customer stats
       const totalCustomers = customers.length 
-      const activeCustomers = customers.filter(c => c.isActive).length;
+      const activeCustomers = customers.filter(c => c.is_active).length;
 
       // Calculate product stats
       const totalProducts = products.length 
       const lowStockProducts = products.filter(p => 
-        (p.stock || 0) <= (p.minStock || 0)
+        (p.stock || 0) <= (p.min_stock || 0)
       ).length;
 
       // Calculate financial stats
       const completedSales = sales.filter(s => s.status === 'COMPLETED');
-      const totalRevenue = completedSales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+      const totalRevenue = completedSales.reduce((sum, sale) => sum + sale.total_amount, 0);
       
       // Calculate average order value
       const averageOrderValue = completedSales.length > 0 
@@ -176,7 +176,7 @@ export const useDashboard = () => {
 
     // Add low stock alerts
     const lowStockItems = products
-      .filter(p => (p.stock || 0) <= (p.minStock || 0))
+      .filter(p => (p.stock || 0) <= (p.min_stock || 0))
       .slice(0, 2);
 
     lowStockItems.forEach(product => {

@@ -17,15 +17,15 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
       <Controller
-        name="name"
+        name="customer_name"
         control={control}
         rules={{ required: 'Name is required' }}
         render={({ field }) => (
           <TextField
             {...field}
             label="Customer Name"
-            error={!!errors.name}
-            helperText={errors.name?.message}
+            error={!!errors.customer_name}
+            helperText={errors.customer_name?.message}
             disabled={isReadOnly}
             fullWidth
           />
@@ -33,7 +33,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       />
 
       <Controller
-        name="email"
+        name="contact_email"
         control={control}
         rules={{
           required: 'Email is required',
@@ -45,10 +45,10 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         render={({ field }) => (
           <TextField
             {...field}
-            label="Email"
+            label="Contact Email"
             type="email"
-            error={!!errors.email}
-            helperText={errors.email?.message}
+            error={!!errors.contact_email}
+            helperText={errors.contact_email?.message}
             disabled={isReadOnly}
             fullWidth
           />
@@ -56,15 +56,15 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       />
 
       <Controller
-        name="phone"
+        name="contact_phone"
         control={control}
         rules={{ required: 'Phone is required' }}
         render={({ field }) => (
           <TextField
             {...field}
-            label="Phone Number"
-            error={!!errors.phone}
-            helperText={errors.phone?.message}
+            label="Contact Phone"
+            error={!!errors.contact_phone}
+            helperText={errors.contact_phone?.message}
             disabled={isReadOnly}
             fullWidth
           />
@@ -72,15 +72,15 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       />
 
       <Controller
-        name="address"
+        name="contact_location"
         control={control}
         rules={{ required: 'Address is required' }}
         render={({ field }) => (
           <TextField
             {...field}
-            label="Address"
-            error={!!errors.address}
-            helperText={errors.address?.message}
+            label="Contact Location"
+            error={!!errors.contact_location}
+            helperText={errors.contact_location?.message}
             disabled={isReadOnly}
             multiline
             rows={2}
@@ -90,25 +90,12 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       />
 
       <Controller
-        name="taxId"
+        name="contact_description"
         control={control}
         render={({ field }) => (
           <TextField
             {...field}
-            label="Tax ID (Optional)"
-            disabled={isReadOnly}
-            fullWidth
-          />
-        )}
-      />
-
-      <Controller
-        name="notes"
-        control={control}
-        render={({ field }) => (
-          <TextField
-            {...field}
-            label="Notes (Optional)"
+            label="Contact Description (Optional)"
             disabled={isReadOnly}
             multiline
             rows={3}

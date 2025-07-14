@@ -26,7 +26,7 @@ import {
 import { PurchaseFormData, PurchaseDetailFormData, DialogMode } from '../types';
 import { PurchaseEntity } from '@/types/business';
 import { BarcodeSearchInput, ProductSearchResult } from '@/components/BarcodeScanner';
-import { ProductSearchService } from '@/services/productSearchService';
+import { productSearchService } from '@/services/productSearchService';
 
 interface PurchaseFormProps {
   mode: DialogMode;
@@ -42,18 +42,18 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   onCancel,
 }) => {
   const [formData, setFormData] = useState<PurchaseFormData>({
-    supplierName: '',
-    totalAmount: 0,
+    supplier_name: '',
+    total_amount: 0,
     status: 'PENDING',
-    purchaseDetails: [
+    purchase_details: [
       {
-        productId: '',
-        productName: '',
-        quantityOrdered: 1,
+        product_id: '',
+        product_name: '',
+        quantity_ordered: 1,
         price: 0,
-        lotNumber: '',
-        entryDate: new Date().toISOString().split('T')[0],
-        expirationDate: '',
+        lot_number: '',
+        entry_date: new Date().toISOString().split('T')[0],
+        expiration_date: '',
       }
     ],
   });
@@ -63,19 +63,19 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   useEffect(() => {
     if (initialData) {
       setFormData({
-        supplierId: initialData.supplierId,
-        supplierName: initialData.supplierName || '',
-        totalAmount: initialData.totalAmount,
+        supplier_id: initialData.supplier_id,
+        supplier_name: initialData.supplier_name || '',
+        total_amount: initialData.total_amount,
         status: initialData.status,
-        purchaseDetails: initialData.purchaseDetails.map(detail => ({
-          productId: detail.productId,
-          productName: detail.productName,
-          quantityOrdered: detail.quantity,
+        purchase_details: initialData.purchase_details.map(detail => ({
+          product_id: detail.product_id,
+          product_name: detail.product_name,
+          quantity_ordered: detail.quantity,
           price: detail.price,
-          totalAmount: detail.totalAmount,
-          lotNumber: detail.lotNumber || '',
-          entryDate: detail.entryDate ? detail.entryDate.split('T')[0] : '',
-          expirationDate: detail.expirationDate ? detail.expirationDate.split('T')[0] : '',
+          total_amount: detail.total_amount,
+          lot_number: detail.lot_number || '',
+          entry_date: detail.entry_date ? detail.entry_date.split('T')[0] : '',
+          expiration_date: detail.expiration_date ? detail.expiration_date.split('T')[0] : '',
         })),
       });
     }
@@ -89,49 +89,49 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   };
 
   const handleProductSearch = async (query: string): Promise<ProductSearchResult[]> => {
-    return await ProductSearchService.searchProducts(query);
+    return await productSearchService.searchProducts(query);
   };
 
   const handleProductSelect = (product: ProductSearchResult) => {
     // Check if product is already in the list
-    const existingItemIndex = formData.purchaseDetails.findIndex(
-      item => item.productId === product.id
+    const existingItemIndex = formData.purchase_details.findIndex(
+      item => item.product_id === product.id
     );
 
     if (existingItemIndex >= 0) {
       // Increase quantity if product already exists
-      const updatedDetails = [...formData.purchaseDetails];
+      const updatedDetails = [...formData.purchase_details];
       updatedDetails[existingItemIndex] = {
         ...updatedDetails[existingItemIndex],
-        quantityOrdered: updatedDetails[existingItemIndex].quantityOrdered + 1,
-        totalAmount: (updatedDetails[existingItemIndex].quantityOrdered + 1) * updatedDetails[existingItemIndex].price,
+        quantity_ordered: updatedDetails[existingItemIndex].quantity_ordered + 1,
+        total_amount: (updatedDetails[existingItemIndex].quantity_ordered + 1) * updatedDetails[existingItemIndex].price,
       };
       
       setFormData(prev => ({
         ...prev,
-        purchaseDetails: updatedDetails,
+        purchase_details: updatedDetails,
       }));
     } else {
       // Add new product to the list
       const newPurchaseDetail: PurchaseDetailFormData = {
-        productId: product.id,
-        productName: product.name,
-        quantityOrdered: 1,
+        product_id: product.id,
+        product_name: product.name,
+        quantity_ordered: 1,
         price: product.price,
-        totalAmount: product.price,
-        lotNumber: '',
-        entryDate: new Date().toISOString().split('T')[0],
-        expirationDate: '',
+        total_amount: product.price,
+        lot_number: '',
+        entry_date: new Date().toISOString().split('T')[0],
+        expiration_date: '',
       };
 
       setFormData(prev => ({
         ...prev,
-        purchaseDetails: [...prev.purchaseDetails, newPurchaseDetail],
+        purchase_details: [...prev.purchase_details, newPurchaseDetail],
       }));
     }
 
     // Recalculate total
-    const totalAmount = formData.purchaseDetails.reduce((sum, detail) => sum + (detail.totalAmount || 0), 0);
+    const totalAmount = formData.purchase_details.reduce((sum, detail) => sum + (detail.total_amount || 0), 0);
     setFormData(prev => ({
       ...prev,
       totalAmount,
@@ -139,62 +139,62 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   };
 
   const handleDetailChange = (index: number, field: keyof PurchaseDetailFormData, value: any) => {
-    const updatedDetails = [...formData.purchaseDetails];
+    const updatedDetails = [...formData.purchase_details];
     updatedDetails[index] = {
       ...updatedDetails[index],
       [field]: value,
     };
 
     // Auto-calculate total amount for the detail
-    if (field === 'quantityOrdered' || field === 'price') {
+    if (field === 'quantity_ordered' || field === 'price') {
       const detail = updatedDetails[index];
-      detail.totalAmount = detail.quantityOrdered * detail.price;
+      detail.total_amount = detail.quantity_ordered * detail.price;
     }
 
     setFormData(prev => ({
       ...prev,
-      purchaseDetails: updatedDetails,
+      purchase_details: updatedDetails,
     }));
 
     // Auto-calculate total amount for the purchase
-    const totalAmount = updatedDetails.reduce((sum, detail) => sum + (detail.totalAmount || 0), 0);
+    const totalAmount = updatedDetails.reduce((sum, detail) => sum + (detail.total_amount || 0), 0);
     setFormData(prev => ({
       ...prev,
-      totalAmount,
+      total_amount: totalAmount,
     }));
   };
 
   const addDetail = () => {
     setFormData(prev => ({
       ...prev,
-      purchaseDetails: [
-        ...prev.purchaseDetails,
+      purchase_details: [
+        ...prev.purchase_details,
         {
-          productId: '',
-          productName: '',
-          quantityOrdered: 1,
+          product_id: '',
+          product_name: '',
+          quantity_ordered: 1,
           price: 0,
-          lotNumber: '',
-          entryDate: new Date().toISOString().split('T')[0],
-          expirationDate: '',
+          lot_number: '',
+          entry_date: new Date().toISOString().split('T')[0],
+          expiration_date: '',
         }
       ],
     }));
   };
 
   const removeDetail = (index: number) => {
-    if (formData.purchaseDetails.length > 1) {
-      const updatedDetails = formData.purchaseDetails.filter((_, i) => i !== index);
+    if (formData.purchase_details.length > 1) {
+      const updatedDetails = formData.purchase_details.filter((_, i) => i !== index);
       setFormData(prev => ({
         ...prev,
-        purchaseDetails: updatedDetails,
+        purchase_details: updatedDetails,
       }));
 
       // Recalculate total amount
-      const totalAmount = updatedDetails.reduce((sum, detail) => sum + (detail.totalAmount || 0), 0);
+      const totalAmount = updatedDetails.reduce((sum, detail) => sum + (detail.total_amount || 0), 0);
       setFormData(prev => ({
         ...prev,
-        totalAmount,
+        total_amount: totalAmount,
       }));
     }
   };
@@ -205,11 +205,11 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   };
 
   const isFormValid = () => {
-    return (formData.supplierName?.trim() || '') !== '' &&
-           formData.purchaseDetails.length > 0 &&
-           formData.purchaseDetails.every(detail => 
-             detail.productName.trim() !== '' &&
-             detail.quantityOrdered > 0 &&
+    return (formData.supplier_name?.trim() || '') !== '' &&
+           formData.purchase_details.length > 0 &&
+           formData.purchase_details.every(detail => 
+             detail.product_name.trim() !== '' &&
+             detail.quantity_ordered > 0 &&
              detail.price >= 0
            );
   };
@@ -228,8 +228,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           <TextField
             fullWidth
             label="Supplier Name"
-            value={formData.supplierName}
-            onChange={(e) => handleChange('supplierName', e.target.value)}
+            value={formData.supplier_name}
+            onChange={(e) => handleChange('supplier_name', e.target.value)}
             disabled={isReadOnly}
             required
           />
@@ -255,8 +255,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             fullWidth
             label="Total Amount"
             type="number"
-            value={formData.totalAmount}
-            onChange={(e) => handleChange('totalAmount', parseFloat(e.target.value) || 0)}
+            value={formData.total_amount}
+            onChange={(e) => handleChange('total_amount', parseFloat(e.target.value) || 0)}
             disabled={true} // Always calculated automatically
             InputProps={{
               startAdornment: '$',
@@ -336,13 +336,13 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {formData.purchaseDetails.map((detail, index) => (
+                    {formData.purchase_details.map((detail, index) => (
                       <TableRow key={index}>
                         <TableCell>
                           <TextField
                             size="small"
-                            value={detail.productName}
-                            onChange={(e) => handleDetailChange(index, 'productName', e.target.value)}
+                            value={detail.product_name}
+                            onChange={(e) => handleDetailChange(index, 'product_name', e.target.value)}
                             disabled={isReadOnly}
                             placeholder="Product name"
                             fullWidth
@@ -352,8 +352,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                           <TextField
                             size="small"
                             type="number"
-                            value={detail.quantityOrdered}
-                            onChange={(e) => handleDetailChange(index, 'quantityOrdered', parseInt(e.target.value) || 0)}
+                            value={detail.quantity_ordered}
+                            onChange={(e) => handleDetailChange(index, 'quantity_ordered', parseInt(e.target.value) || 0)}
                             disabled={isReadOnly}
                             sx={{ width: 80 }}
                           />
@@ -369,13 +369,13 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                           />
                         </TableCell>
                         <TableCell>
-                          ${(detail.totalAmount || 0).toFixed(2)}
+                          ${(detail.total_amount || 0).toFixed(2)}
                         </TableCell>
                         <TableCell>
                           <TextField
                             size="small"
-                            value={detail.lotNumber}
-                            onChange={(e) => handleDetailChange(index, 'lotNumber', e.target.value)}
+                            value={detail.lot_number}
+                            onChange={(e) => handleDetailChange(index, 'lot_number', e.target.value)}
                             disabled={isReadOnly}
                             placeholder="LOT-XXX"
                             sx={{ width: 100 }}
@@ -385,8 +385,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                           <TextField
                             size="small"
                             type="date"
-                            value={detail.entryDate}
-                            onChange={(e) => handleDetailChange(index, 'entryDate', e.target.value)}
+                            value={detail.entry_date}
+                            onChange={(e) => handleDetailChange(index, 'entry_date', e.target.value)}
                             disabled={isReadOnly}
                             sx={{ width: 140 }}
                           />
@@ -395,8 +395,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                           <TextField
                             size="small"
                             type="date"
-                            value={detail.expirationDate}
-                            onChange={(e) => handleDetailChange(index, 'expirationDate', e.target.value)}
+                            value={detail.expiration_date}
+                            onChange={(e) => handleDetailChange(index, 'expiration_date', e.target.value)}
                             disabled={isReadOnly}
                             sx={{ width: 140 }}
                           />
@@ -406,7 +406,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                             <IconButton
                               size="small"
                               onClick={() => removeDetail(index)}
-                              disabled={formData.purchaseDetails.length === 1}
+                              disabled={formData.purchase_details.length === 1}
                               color="error"
                             >
                               <DeleteIcon />

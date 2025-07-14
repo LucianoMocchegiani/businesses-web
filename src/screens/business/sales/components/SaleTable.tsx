@@ -71,20 +71,20 @@ export const SaleTable: React.FC<SaleTableProps> = ({
 
   const columns: GridColDef[] = [
     {
-      field: 'id',
+      field: 'sale_id',
       headerName: 'Sale ID',
       width: 80,
       renderCell: (params) => `#${params.value}`,
     },
     {
-      field: 'customerName',
+      field: 'customer_name',
       headerName: 'Customer',
       width: 150,
       minWidth: 120,
       renderCell: (params) => params.value || 'Walk-in Customer',
     },
     {
-      field: 'totalAmount',
+      field: 'total_amount',
       headerName: 'Total',
       width: 100,
       type: 'number',
@@ -103,13 +103,13 @@ export const SaleTable: React.FC<SaleTableProps> = ({
       ),
     },
     {
-      field: 'saleDetails',
+      field: 'sale_details',
       headerName: 'Items',
       width: 70,
       renderCell: (params) => `${params.value?.length || 0} items`,
     },
     {
-      field: 'createdAt',
+      field: 'created_at',
       headerName: 'Created',
       width: 100,
       renderCell: (params) => {
@@ -189,6 +189,7 @@ export const SaleTable: React.FC<SaleTableProps> = ({
           rows={sales}
           columns={columns}
           loading={loading}
+          getRowId={(row) => row.sale_id}
           pageSizeOptions={[10, 25, 50]}
           paginationModel={{
             page: pagination.page - 1,

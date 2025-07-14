@@ -30,7 +30,7 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
   // Obtener iniciales del nombre del negocio
   const getInitials = (name: string) => {
     return name
-      .split(' ')
+      ?.split(' ')
       .map(word => word[0])
       .join('')
       .toUpperCase()

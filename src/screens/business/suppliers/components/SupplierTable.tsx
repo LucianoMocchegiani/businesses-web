@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Chip } from '@mui/material';
+import { Card, CardContent } from '@mui/material';
 import {
   DataGrid,
   GridColDef,
@@ -30,50 +30,38 @@ export const SupplierTable: React.FC<SupplierTableProps> = ({
 }) => {
   const columns: GridColDef[] = [
     {
-      field: 'name',
-      headerName: 'Supplier',
+      field: 'supplier_name',
+      headerName: 'Supplier Name',
       width: 180,
       minWidth: 150,
     },
     {
-      field: 'contactName',
-      headerName: 'Contact',
+      field: 'contact_name',
+      headerName: 'Contact Name',
       width: 120,
       renderCell: (params) => params.value || '-',
     },
     {
-      field: 'email',
-      headerName: 'Email',
+      field: 'contact_email',
+      headerName: 'Contact Email',
       width: 180,
       minWidth: 150,
       renderCell: (params) => params.value || '-',
     },
     {
-      field: 'phone',
-      headerName: 'Phone',
+      field: 'contact_phone',
+      headerName: 'Contact Phone',
       width: 120,
       renderCell: (params) => params.value || '-',
     },
     {
-      field: 'taxId',
-      headerName: 'Tax ID',
-      width: 100,
-      renderCell: (params) => params.value || '-',
+      field: 'contact_location',
+      headerName: 'Contact Location',
+      width: 200,
+      minWidth: 150,
     },
     {
-      field: 'isActive',
-      headerName: 'Status',
-      width: 90,
-      renderCell: (params) => (
-        <Chip
-          label={params.value ? 'Active' : 'Inactive'}
-          color={params.value ? 'success' : 'default'}
-          size="small"
-        />
-      ),
-    },
-    {
-      field: 'createdAt',
+      field: 'created_at',
       headerName: 'Created',
       width: 100,
       renderCell: (params) => {
@@ -116,6 +104,7 @@ export const SupplierTable: React.FC<SupplierTableProps> = ({
           rows={suppliers}
           columns={columns}
           loading={loading}
+          getRowId={(row) => row.supplier_id}
           pageSizeOptions={[10, 25, 50]}
           initialState={{
             pagination: { paginationModel: { pageSize: 10 } },

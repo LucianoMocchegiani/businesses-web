@@ -44,13 +44,11 @@ export const SupplierDialog: React.FC<SupplierDialogProps> = ({
     if (open) {
       if (supplier) {
         reset({
-          name: supplier.name,
-          contactName: supplier.contactName || '',
-          email: supplier.email || '',
-          phone: supplier.phone || '',
-          address: supplier.address || '',
-          taxId: supplier.taxId || '',
-          notes: supplier.notes || '',
+          supplier_name: supplier.supplier_name,
+          contact_email: supplier.contact_email || '',
+          contact_phone: supplier.contact_phone || '',
+          contact_location: supplier.contact_location || '',
+          contact_description: supplier.contact_description || '',
         });
       } else {
         reset();

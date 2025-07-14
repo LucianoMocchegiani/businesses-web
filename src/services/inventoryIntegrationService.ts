@@ -5,15 +5,15 @@ import { LotCreationData, InventoryMovement } from '@/screens/business/purchases
 
 interface InventoryLot {
   id: string;
-  productId: string;
-  lotNumber: string;
+  product_id: string;
+  lot_number: string;
   quantity: number;
-  availableQuantity: number;
-  unitCost: number;
-  entryDate: Date;
-  expirationDate?: Date;
-  supplierId: string;
-  purchaseId: string;
+  available_quantity: number;
+  unit_cost: number;
+  entry_date: Date;
+  expiration_date?: Date;
+  supplier_id: string;
+  purchase_id: string;
   location?: string;
   status: 'ACTIVE' | 'EXPIRED' | 'CONSUMED';
 }
@@ -21,12 +21,12 @@ interface InventoryLot {
 interface StockMovement {
   id: string;
   type: 'PURCHASE_IN' | 'SALE_OUT' | 'ADJUSTMENT' | 'TRANSFER';
-  productId: string;
-  lotNumber?: string;
+  product_id: string;
+  lot_number?: string;
   quantity: number;
-  unitCost?: number;
+  unit_cost?: number;
   reference: string;
-  performedBy: string;
+  performed_by: string;
   timestamp: Date;
   notes?: string;
 }
@@ -44,15 +44,15 @@ class InventoryIntegrationService {
       for (const lot of lotData) {
         const inventoryLot: InventoryLot = {
           id: this.generateLotId(),
-          productId: lot.productId,
-          lotNumber: lot.lotNumber || this.generateLotNumber(lot.productId),
+          product_id: lot.product_id,
+          lot_number: lot.lot_number || this.generateLotNumber(lot.product_id),
           quantity: lot.quantity,
-          availableQuantity: lot.quantity,
-          unitCost: lot.unitCost,
-          entryDate: lot.entryDate,
-          expirationDate: lot.expirationDate,
-          supplierId: lot.supplierId,
-          purchaseId: lot.purchaseId,
+          available_quantity: lot.quantity,
+          unit_cost: lot.unit_cost,
+          entry_date: lot.entry_date,
+          expiration_date: lot.expiration_date,
+          supplier_id: lot.supplier_id,
+          purchase_id: lot.purchase_id,
           location: lot.location,
           status: 'ACTIVE'
         };
@@ -63,12 +63,12 @@ class InventoryIntegrationService {
         // Registrar movimiento de entrada
         await this.recordStockMovement({
           type: 'PURCHASE_IN',
-          productId: lot.productId,
-          lotNumber: inventoryLot.lotNumber,
+          product_id: lot.product_id,
+          lot_number: inventoryLot.lot_number,
           quantity: lot.quantity,
-          unitCost: lot.unitCost,
+          unit_cost: lot.unit_cost,
           reference: purchaseId,
-          performedBy: 'system',
+          performed_by: 'system',
           notes: `Lot created from purchase ${purchaseId}`
         });
       }
@@ -88,12 +88,12 @@ class InventoryIntegrationService {
       const stockMovement: StockMovement = {
         id: this.generateMovementId(),
         type: movement.type,
-        productId: movement.productId,
-        lotNumber: movement.lotNumber,
+        product_id: movement.product_id,
+        lot_number: movement.lot_number,
         quantity: movement.quantity,
-        unitCost: movement.unitCost,
+        unit_cost: movement.unit_cost,
         reference: movement.reference,
-        performedBy: movement.performedBy,
+        performed_by: movement.performed_by,
         timestamp: new Date(),
         notes: movement.notes
       };
@@ -113,10 +113,10 @@ class InventoryIntegrationService {
   async updateProductStock(productId: string): Promise<{ currentStock: number; availableLots: number }> {
     try {
       const productLots = mockInventoryLots.filter(
-        lot => lot.productId === productId && lot.status === 'ACTIVE'
+        lot => lot.product_id === productId && lot.status === 'ACTIVE'
       );
       
-      const currentStock = productLots.reduce((total, lot) => total + lot.availableQuantity, 0);
+      const currentStock = productLots.reduce((total, lot) => total + lot.available_quantity, 0);
       const availableLots = productLots.length;
       
       console.log(`Product ${productId} stock updated: ${currentStock} units in ${availableLots} lots`);
@@ -136,8 +136,8 @@ class InventoryIntegrationService {
   async consumeStock(productId: string, quantity: number, saleId: string): Promise<{ consumedLots: InventoryLot[]; shortage: number }> {
     try {
       const availableLots = mockInventoryLots
-        .filter(lot => lot.productId === productId && lot.status === 'ACTIVE' && lot.availableQuantity > 0)
-        .sort((a, b) => a.entryDate.getTime() - b.entryDate.getTime()); // FIFO
+        .filter(lot => lot.product_id === productId && lot.status === 'ACTIVE' && lot.available_quantity > 0)
+        .sort((a, b) => a.entry_date.getTime() - b.entry_date.getTime()); // FIFO
       
       let remainingQuantity = quantity;
       const consumedLots: InventoryLot[] = [];
@@ -145,11 +145,11 @@ class InventoryIntegrationService {
       for (const lot of availableLots) {
         if (remainingQuantity <= 0) break;
         
-        const consumeFromLot = Math.min(lot.availableQuantity, remainingQuantity);
-        lot.availableQuantity -= consumeFromLot;
+        const consumeFromLot = Math.min(lot.available_quantity, remainingQuantity);
+        lot.available_quantity -= consumeFromLot;
         remainingQuantity -= consumeFromLot;
         
-        if (lot.availableQuantity === 0) {
+        if (lot.available_quantity === 0) {
           lot.status = 'CONSUMED';
         }
         
@@ -158,11 +158,11 @@ class InventoryIntegrationService {
         // Registrar movimiento de salida
         await this.recordStockMovement({
           type: 'SALE_OUT',
-          productId: productId,
-          lotNumber: lot.lotNumber,
+          product_id: productId,
+          lot_number: lot.lot_number,
           quantity: consumeFromLot,
           reference: saleId,
-          performedBy: 'system',
+          performed_by: 'system',
           notes: `Stock consumed for sale ${saleId}`
         });
       }
@@ -179,21 +179,21 @@ class InventoryIntegrationService {
   
   // Obtener lotes por producto
   async getLotsByProduct(productId: string): Promise<InventoryLot[]> {
-    return mockInventoryLots.filter(lot => lot.productId === productId);
+    return mockInventoryLots.filter(lot => lot.product_id === productId);
   }
   
   // Obtener movimientos por producto
   async getMovementsByProduct(productId: string): Promise<StockMovement[]> {
-    return mockStockMovements.filter(movement => movement.productId === productId);
+    return mockStockMovements.filter(movement => movement.product_id === productId);
   }
   
   // Verificar stock disponible
   async checkAvailableStock(productId: string): Promise<{ available: number; lots: InventoryLot[] }> {
     const activeLots = mockInventoryLots.filter(
-      lot => lot.productId === productId && lot.status === 'ACTIVE'
+      lot => lot.product_id === productId && lot.status === 'ACTIVE'
     );
     
-    const available = activeLots.reduce((total, lot) => total + lot.availableQuantity, 0);
+    const available = activeLots.reduce((total, lot) => total + lot.available_quantity, 0);
     
     return { available, lots: activeLots };
   }
@@ -205,15 +205,15 @@ class InventoryIntegrationService {
     
     return mockInventoryLots.filter(lot => 
       lot.status === 'ACTIVE' && 
-      lot.expirationDate && 
-      lot.expirationDate <= cutoffDate
+      lot.expiration_date && 
+      lot.expiration_date <= cutoffDate
     );
   }
   
   // Obtener historial de movimientos
   async getStockHistory(productId?: string): Promise<StockMovement[]> {
     const movements = productId 
-      ? mockStockMovements.filter(movement => movement.productId === productId)
+      ? mockStockMovements.filter(movement => movement.product_id === productId)
       : mockStockMovements;
     
     return movements.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());

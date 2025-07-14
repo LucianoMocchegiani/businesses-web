@@ -1,14 +1,13 @@
 export interface Customer {
-  id: string 
-  name: string
-  email: string
-  phone: string
-  address: string
-  taxId?: string
-  notes?: string
-  isActive: boolean
-  createdAt: Date
-  updatedAt: Date
+  customer_id: string 
+  customer_name: string
+  contact_email: string
+  contact_phone: string
+  contact_location: string
+  contact_description?: string
+  is_active?: boolean // solo en los gets
+  created_at: string
+  updated_at: string
 }
 
 export interface Product {
@@ -20,15 +19,15 @@ export interface Product {
   barcode?: string
   category?: string // Hacer opcional porque BusinessProduct no lo tiene
   stock?: number
-  minStock?: number
-  isActive?: boolean // Hacer opcional
-  createdAt: Date
-  updatedAt: Date
+  min_stock?: number
+  is_active?: boolean // solo en los gets
+  created_at: string
+  updated_at: string
 }
 
 export interface Sale {
   sale_id: number
-  business_id: number
+  business_id?: number // viene en los gets
   customer_id?: number
   total_amount: number
   sale_date: string
@@ -49,7 +48,7 @@ export interface SaleDetail {
 
 export interface Purchase {
   purchase_id: number
-  business_id: number
+  business_id?: number // viene en los gets
   supplier_id?: number
   total_amount: number
   purchase_date: string
@@ -69,7 +68,7 @@ export interface PurchaseDetail {
 
 export interface Inventory {
   inventory_id: number
-  business_id: number
+  business_id?: number // viene en los gets
   product_id: number
   stock_quantity: number
   min_stock?: number
@@ -80,7 +79,7 @@ export interface Inventory {
 }
 
 export interface Business {
-  business_id: number
+  business_id?: number // viene en los gets
   owner_id: number
   business_name: string
   business_address?: string
@@ -92,12 +91,13 @@ export interface Business {
 
 export interface Supplier {
   supplier_id: number
-  business_id: number
+  business_id?: number // viene en los gets
   supplier_name: string
   contact_name?: string
-  email?: string
-  phone?: string
-  address?: string
+  contact_email?: string
+  contact_phone?: string
+  contact_location?: string
+  contact_description?: string
   created_at: string
   updated_at: string
 }
@@ -118,80 +118,79 @@ export interface Brand {
   updated_at: string
 }
 
-// Frontend-friendly Supplier interface (following Customer pattern)
+// Frontend-friendly Supplier interface (snake_case)
 export interface SupplierEntity {
-  id: string;
-  businessId: string;
-  name: string;
-  contactName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  taxId?: string;
-  notes?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  supplier_id: string;
+  business_id?: string; // viene en los gets
+  supplier_name: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  contact_location?: string;
+  contact_description?: string;
+  is_active?: boolean; // solo en los gets
+  created_at: string;
+  updated_at: string;
 }
 
-// Frontend-friendly Sale interfaces (aligned with backend)
+// Frontend-friendly Sale interfaces (snake_case)
 export interface SaleEntity {
-  id: string;
-  businessId: string;
-  customerId?: string;
-  customerName?: string; // For display purposes
-  totalAmount: number;
+  sale_id: string;
+  business_id?: string; // viene en los gets
+  customer_id?: string;
+  customer_name?: string; // For display purposes
+  total_amount: number;
   status: 'PENDING' | 'COMPLETED' | 'CANCELED';
-  createdAt: string;
-  updatedAt: string;
-  saleDetails: SaleDetailEntity[];
+  created_at: string;
+  updated_at: string;
+  sale_details: SaleDetailEntity[];
 }
 
 export interface SaleDetailEntity {
-  id: string;
-  saleId: string;
-  productId: string;
-  productName: string; // For display purposes
+  sale_detail_id: string;
+  sale_id: string;
+  product_id: string;
+  product_name: string; // For display purposes
   quantity: number;
   price: number;
-  totalAmount: number;
+  total_amount: number;
 }
 
 export type SaleStatus = 'PENDING' | 'COMPLETED' | 'CANCELED';
 
-// Frontend-friendly Purchase interfaces (aligned with backend)
+// Frontend-friendly Purchase interfaces (snake_case)
 export interface PurchaseEntity {
-  id: string;
-  businessId: string;
-  supplierId?: string;
-  supplierName?: string; // For display purposes
-  totalAmount: number;
+  purchase_id: string;
+  business_id?: string; // viene en los gets
+  supplier_id?: string;
+  supplier_name?: string; // For display purposes
+  total_amount: number;
   status: PurchaseStatus;
-  createdAt: string;
-  updatedAt: string;
-  purchaseDetails: PurchaseDetailEntity[];
-  // Nuevos campos para recepción
-  actualDeliveryDate?: string;
-  receivedBy?: string;
-  invoiceNumber?: string;
+  created_at: string;
+  updated_at: string;
+  purchase_details: PurchaseDetailEntity[];
+  // Campos para recepción
+  actual_delivery_date?: string;
+  received_by?: string;
+  invoice_number?: string;
 }
 
 export interface PurchaseDetailEntity {
-  id: string;
-  purchaseId: string;
-  productId: string;
-  productName: string; // For display purposes
+  purchase_detail_id: string;
+  purchase_id: string;
+  product_id: string;
+  product_name: string; // For display purposes
   quantity: number;
-  quantityReceived?: number; // Puede diferir de quantity
+  quantity_received?: number; // Puede diferir de quantity
   price: number;
-  totalAmount: number;
-  lotNumber?: string;
-  entryDate?: string;
-  expirationDate?: string;
-  // Nuevos campos para control de calidad y ubicación
-  qualityCheck?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PARTIALLY_APPROVED';
-  qualityNotes?: string;
-  warehouseLocation?: string;
+  total_amount: number;
+  lot_number?: string;
+  entry_date?: string;
+  expiration_date?: string;
+  // Campos para control de calidad y ubicación
+  quality_check?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PARTIALLY_APPROVED';
+  quality_notes?: string;
+  warehouse_location?: string;
 }
 
 export type PurchaseStatus = 'PENDING' | 'ORDERED' | 'IN_TRANSIT' | 'RECEIVED' | 'INVOICED' | 'COMPLETED' | 'CANCELED';

@@ -42,14 +42,14 @@ export const PurchaseTable: React.FC<PurchaseTableProps> = ({
 }) => {
   const columns: GridColDef[] = [
     {
-      field: 'supplierName',
+      field: 'supplier_name',
       headerName: 'Supplier',
       width: 150,
       minWidth: 120,
       renderCell: (params) => params.value || 'Sin proveedor',
     },
     {
-      field: 'totalAmount',
+      field: 'total_amount',
       headerName: 'Total',
       width: 100,
       renderCell: (params) => `$${params.value.toFixed(2)}`,
@@ -90,7 +90,7 @@ export const PurchaseTable: React.FC<PurchaseTableProps> = ({
       },
     },
     {
-      field: 'purchaseDetails',
+      field: 'purchase_details',
       headerName: 'Items',
       width: 70,
       renderCell: (params) => {
@@ -99,7 +99,7 @@ export const PurchaseTable: React.FC<PurchaseTableProps> = ({
       },
     },
     {
-      field: 'createdAt',
+      field: 'created_at',
       headerName: 'Created',
       width: 100,
       renderCell: (params) => {
@@ -198,6 +198,7 @@ export const PurchaseTable: React.FC<PurchaseTableProps> = ({
           rows={purchases}
           columns={columns}
           loading={loading}
+          getRowId={(row) => row.purchase_id}
           pageSizeOptions={[10, 25, 50]}
           initialState={{
             pagination: { paginationModel: { pageSize: 10 } },

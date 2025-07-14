@@ -70,7 +70,7 @@ export const BusinessSelectionScreen: React.FC = () => {
 
                 {/* Caso B: Con negocios - Mostrar cards de negocios */}
                 {businessesWithProfiles.map((businessWithProfile) => (
-                    <Grid item xs={12} sm={6} md={4} key={businessWithProfile.business.business_id}>
+                    <Grid item xs={12} sm={6} md={4} key={businessWithProfile.business.business_id || crypto.randomUUID()}>
                         <BusinessCard
                             businessWithProfile={businessWithProfile}
                             onClick={() => handleSelectBusiness(businessWithProfile)}

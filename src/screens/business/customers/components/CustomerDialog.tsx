@@ -44,12 +44,11 @@ export const CustomerDialog: React.FC<CustomerDialogProps> = ({
     if (open) {
       if (customer) {
         reset({
-          name: customer.name,
-          email: customer.email,
-          phone: customer.phone,
-          address: customer.address,
-          taxId: customer.taxId || '',
-          notes: customer.notes || '',
+          customer_name: customer.customer_name,
+          contact_email: customer.contact_email,
+          contact_phone: customer.contact_phone,
+          contact_location: customer.contact_location,
+          contact_description: customer.contact_description,
         });
       } else {
         reset();

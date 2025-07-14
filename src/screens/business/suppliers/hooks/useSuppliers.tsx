@@ -72,9 +72,9 @@ export const useSuppliers = (): UseSuppliersReturn => {
   };
 
   const handleDelete = async (supplier: SupplierEntity) => {
-    if (window.confirm(`Are you sure you want to delete supplier "${supplier.name}"?`)) {
+    if (window.confirm(`Are you sure you want to delete supplier "${supplier.supplier_name}"?`)) {
       try {
-        await supplierService.delete(supplier.id);
+        await supplierService.delete(supplier.supplier_id);
         showSnackbar('Supplier deleted successfully', 'success');
         loadSuppliers();
       } catch (error) {
@@ -93,13 +93,15 @@ export const useSuppliers = (): UseSuppliersReturn => {
     try {
       if (dialogMode === 'create') {
         await supplierService.create({
-          ...data,
-          businessId: '1', // TODO: Get from auth context
-          isActive: true,
+          supplier_name: data.supplier_name,
+          contact_email: data.contact_email,
+          contact_phone: data.contact_phone,
+          contact_location: data.contact_location,
+          contact_description: data.contact_description,
         });
         showSnackbar('Supplier created successfully', 'success');
       } else if (dialogMode === 'edit' && selectedSupplier) {
-        await supplierService.update(selectedSupplier.id, data);
+        await supplierService.update(selectedSupplier.supplier_id, data);
         showSnackbar('Supplier updated successfully', 'success');
       }
       handleCloseDialog();

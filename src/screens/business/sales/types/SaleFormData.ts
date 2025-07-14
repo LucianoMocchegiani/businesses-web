@@ -1,19 +1,20 @@
 import { SaleStatus } from '@/types/business';
 
 export interface SaleDetailFormData {
-  productId: string;
-  productName: string;
+  product_id: string;
+  product_name: string;
   quantity: number;
   price: number;
-  totalAmount: number;
+  total_amount: number;
 }
 
 export interface SaleFormData {
-  customerId?: string;
-  customerName?: string;
-  totalAmount?: number;
+  customer_id?: string;
+  customer_name?: string;
+  total_amount?: number;
   status: SaleStatus;
-  saleDetails: SaleDetailFormData[];
+  comments?: string;
+  sale_details: SaleDetailFormData[];
   notes?: string;
 }
 

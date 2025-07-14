@@ -4,18 +4,18 @@ import { apiService } from './apiService';
 export interface GetCustomersParams {
   page?: number;
   limit?: number;
-  orderBy?: 'name' | 'email' | 'createdAt' | 'updatedAt';
-  orderDirection?: 'asc' | 'desc';
+  order_by?: 'name' | 'email' | 'created_at' | 'updated_at';
+  order_direction?: 'asc' | 'desc';
   name?: string;
   email?: string;
-  isActive?: boolean;
+  is_active?: boolean;
 }
 
 export interface CustomersResponse {
   data: Customer[];
   total: number;
   page: number;
-  lastPage: number;
+  last_page: number;
 }
 
 class CustomerService {
@@ -23,16 +23,16 @@ class CustomerService {
 
   async getAll(params?: GetCustomersParams): Promise<CustomersResponse> {
     try {
-      // Construir query string
+      // Construir query string directamente
       const queryParams = new URLSearchParams();
       
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
-      if (params?.orderBy) queryParams.append('orderBy', params.orderBy);
-      if (params?.orderDirection) queryParams.append('orderDirection', params.orderDirection);
+      if (params?.order_by) queryParams.append('order_by', params.order_by);
+      if (params?.order_direction) queryParams.append('order_direction', params.order_direction);
       if (params?.name) queryParams.append('name', params.name);
       if (params?.email) queryParams.append('email', params.email);
-      if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+      if (params?.is_active !== undefined) queryParams.append('is_active', params.is_active.toString());
       
       const queryString = queryParams.toString();
       const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
@@ -45,7 +45,7 @@ class CustomerService {
         data: [],
         total: 0,
         page: 1,
-        lastPage: 0
+        last_page: 0
       };
     }
   }
@@ -54,11 +54,11 @@ class CustomerService {
     return apiService.get<Customer>(`${this.endpoint}/${id}`);
   }
 
-  async create(customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>): Promise<Customer> {
+  async create(customerData: Omit<Customer, 'customer_id' | 'created_at' | 'updated_at' | 'is_active'>): Promise<Customer> {
     return apiService.post<Customer>(this.endpoint, customerData);
   }
 
-  async update(id: number, customerData: Partial<Customer>): Promise<Customer> {
+  async update(id: number, customerData: Omit<Customer, 'customer_id' | 'created_at' | 'updated_at' | 'is_active'>): Promise<Customer> {
     return apiService.put<Customer>(`${this.endpoint}/${id}`, customerData);
   }
 
@@ -78,8 +78,8 @@ class CustomerService {
   }
 
   // Buscar clientes activos
-  async getActiveCustomers(params?: Omit<GetCustomersParams, 'isActive'>): Promise<CustomersResponse> {
-    return this.getAll({ ...params, isActive: true });
+  async getActiveCustomers(params?: Omit<GetCustomersParams, 'is_active'>): Promise<CustomersResponse> {
+    return this.getAll({ ...params, is_active: true });
   }
 }
 

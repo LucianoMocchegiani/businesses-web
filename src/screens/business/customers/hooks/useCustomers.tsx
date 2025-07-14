@@ -72,9 +72,9 @@ export const useCustomers = (): UseCustomersReturn => {
   };
 
   const handleDelete = async (customer: Customer) => {
-    if (window.confirm(`Are you sure you want to delete customer "${customer.name}"?`)) {
+    if (window.confirm(`Are you sure you want to delete customer "${customer.customer_name}"?`)) {
       try {
-        await customerService.delete(customer.id);
+        await customerService.delete(Number(customer.customer_id));
         showSnackbar('Customer deleted successfully', 'success');
         loadCustomers();
       } catch (error) {
@@ -92,10 +92,21 @@ export const useCustomers = (): UseCustomersReturn => {
   const handleSubmit = async (data: CustomerFormData) => {
     try {
       if (dialogMode === 'create') {
-        await customerService.create(data as Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>);
+        await customerService.create({
+          customer_name: data.customer_name,
+          contact_email: data.contact_email || '',
+          contact_phone: data.contact_phone || '',
+          contact_location: data.contact_location || '',
+          contact_description: data.contact_description || '',
+        });
         showSnackbar('Customer created successfully', 'success');
       } else if (dialogMode === 'edit' && selectedCustomer) {
-        await customerService.update(selectedCustomer.id, data);
+        await customerService.update(Number(selectedCustomer.customer_id), {
+          customer_name: data.customer_name,
+          contact_email: data.contact_email || '',
+          contact_phone: data.contact_phone || '',
+          contact_location: data.contact_location || '',
+        });
         showSnackbar('Customer updated successfully', 'success');
       }
       handleCloseDialog();

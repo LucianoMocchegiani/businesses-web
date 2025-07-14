@@ -54,12 +54,12 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       renderCell: (params) => params.value ? `$${params.value.toFixed(2)}` : '-',
     },
     {
-      field: 'currentStock',
+      field: 'stock',
       headerName: 'Stock',
       width: 100,
       renderCell: (params) => {
-        const stock = params.value || 0;
-        const minStock = params.row.minStock || 0;
+        const stock = params.value?.quantity || 0;
+        const minStock = params.value?.low_stock_threshold || 0;
         const isLowStock = stock <= minStock && minStock > 0;
         return (
           <Chip
@@ -71,7 +71,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       },
     },
     {
-      field: 'isActive',
+      field: 'is_active',
       headerName: 'Status',
       width: 100,
       renderCell: (params) => {
@@ -120,6 +120,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
           rows={products}
           columns={columns}
           loading={loading}
+          getRowId={(row) => row.id}
           pageSizeOptions={[10, 25, 50]}
           initialState={{
             pagination: { paginationModel: { pageSize: 10 } },

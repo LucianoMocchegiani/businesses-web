@@ -4,18 +4,18 @@ import { apiService } from './apiService';
 export interface GetSuppliersParams {
   page?: number;
   limit?: number;
-  orderBy?: 'name' | 'email' | 'createdAt' | 'updatedAt';
-  orderDirection?: 'asc' | 'desc';
+  order_by?: 'name' | 'email' | 'created_at' | 'updated_at';
+  order_direction?: 'asc' | 'desc';
   name?: string;
   email?: string;
-  isActive?: boolean;
+  is_active?: boolean;
 }
 
 export interface SuppliersResponse {
   data: SupplierEntity[];
   total: number;
   page: number;
-  lastPage: number;
+  last_page: number;
 }
 
 class SupplierService {
@@ -23,16 +23,16 @@ class SupplierService {
 
   async getAll(params?: GetSuppliersParams): Promise<SuppliersResponse> {
     try {
-      // Construir query string
+      // Construir query string directamente
       const queryParams = new URLSearchParams();
       
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
-      if (params?.orderBy) queryParams.append('orderBy', params.orderBy);
-      if (params?.orderDirection) queryParams.append('orderDirection', params.orderDirection);
+      if (params?.order_by) queryParams.append('order_by', params.order_by);
+      if (params?.order_direction) queryParams.append('order_direction', params.order_direction);
       if (params?.name) queryParams.append('name', params.name);
       if (params?.email) queryParams.append('email', params.email);
-      if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+      if (params?.is_active !== undefined) queryParams.append('is_active', params.is_active.toString());
       
       const queryString = queryParams.toString();
       const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
@@ -45,7 +45,7 @@ class SupplierService {
         data: [],
         total: 0,
         page: 1,
-        lastPage: 0
+        last_page: 0
       };
     }
   }
@@ -54,11 +54,11 @@ class SupplierService {
     return apiService.get<SupplierEntity>(`${this.endpoint}/${id}`);
   }
 
-  async create(supplierData: Omit<SupplierEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<SupplierEntity> {
+  async create(supplierData: Omit<SupplierEntity, 'supplier_id' | 'created_at' | 'updated_at' | 'is_active'>): Promise<SupplierEntity> {
     return apiService.post<SupplierEntity>(this.endpoint, supplierData);
   }
 
-  async update(id: string, supplierData: Partial<SupplierEntity>): Promise<SupplierEntity> {
+  async update(id: string, supplierData: Omit<SupplierEntity, 'supplier_id' | 'created_at' | 'updated_at' | 'is_active'>): Promise<SupplierEntity> {
     return apiService.put<SupplierEntity>(`${this.endpoint}/${id}`, supplierData);
   }
 
@@ -78,8 +78,8 @@ class SupplierService {
   }
 
   // Buscar proveedores activos
-  async getActiveSuppliers(params?: Omit<GetSuppliersParams, 'isActive'>): Promise<SuppliersResponse> {
-    return this.getAll({ ...params, isActive: true });
+  async getActiveSuppliers(params?: Omit<GetSuppliersParams, 'is_active'>): Promise<SuppliersResponse> {
+    return this.getAll({ ...params, is_active: true });
   }
 }
 

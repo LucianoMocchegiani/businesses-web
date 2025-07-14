@@ -66,14 +66,24 @@ export const useSales = (): UseSalesReturn => {
       };
       
       const response: SalesResponse = await saleService.getAll(searchParams);
-      setSales(response.data);
+      const transformedData = response.data.map((sale: any) => ({
+        sale_id: sale.sale_id,
+        customer_name: sale.customer?.customer_name || 'Cliente no disponible',
+        total_amount: sale.total_amount,
+        status: sale.status,
+        created_at: sale.created_at,
+        updated_at: sale.updated_at,
+        sale_details: sale.saleDetails || []
+      }));
+
+      setSales(transformedData);
       
       // Only update pagination metadata (total, totalPages) but not page/limit
       // to avoid infinite loops
       setPagination(prev => ({
         ...prev,
         total: response.total,
-        totalPages: response.lastPage
+        totalPages: response.last_page
       }));
     } catch (error) {
       showSnackbar('Error loading sales', 'error');
@@ -115,9 +125,9 @@ export const useSales = (): UseSalesReturn => {
       return;
     }
 
-    if (window.confirm(`Are you sure you want to delete sale for ${sale.customerName || 'Unknown Customer'}?`)) {
+    if (window.confirm(`Are you sure you want to delete sale for ${sale.customer_name || 'Unknown Customer'}?`)) {
       try {
-        await saleService.delete(sale.id);
+        await saleService.delete(sale.sale_id);
         showSnackbar('Sale deleted successfully', 'success');
         loadSales();
       } catch (error) {
@@ -133,9 +143,9 @@ export const useSales = (): UseSalesReturn => {
       return;
     }
 
-    if (window.confirm(`Are you sure you want to cancel sale for ${sale.customerName || 'Unknown Customer'}?`)) {
+    if (window.confirm(`Are you sure you want to cancel sale for ${sale.customer_name || 'Unknown Customer'}?`)) {
       try {
-        await saleService.cancel(sale.id);
+        await saleService.cancel(sale.sale_id);
         showSnackbar('Sale canceled successfully', 'success');
         loadSales();
       } catch (error) {
@@ -153,16 +163,16 @@ export const useSales = (): UseSalesReturn => {
   const handleSubmit = async (data: SaleFormData) => {
     try {
       const saleData = {
-        customerId: data.customerId,
-        customerName: data.customerName,
-        totalAmount: data.totalAmount,
+        customer_id: data.customer_id,
+        customer_name: data.customer_name,
+        total_amount: data.total_amount,
         status: data.status,
-        saleDetails: data.saleDetails.map(detail => ({
-          productId: detail.productId,
-          productName: detail.productName,
+        sale_details: data.sale_details.map(detail => ({
+          product_id: detail.product_id,
+          product_name: detail.product_name,
           quantity: detail.quantity,
           price: detail.price,
-          totalAmount: detail.totalAmount
+          total_amount: detail.total_amount
         }))
       };
 
@@ -171,7 +181,7 @@ export const useSales = (): UseSalesReturn => {
         showSnackbar('Sale created successfully', 'success');
       } else if (dialogMode === 'edit' && selectedSale) {
         await saleService.update({
-          id: selectedSale.id,
+          sale_id: selectedSale.sale_id,
           ...saleData
         });
         showSnackbar('Sale updated successfully', 'success');

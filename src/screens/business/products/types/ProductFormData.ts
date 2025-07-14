@@ -5,7 +5,7 @@ export interface ProductFormData {
   cost?: number;
   barcode?: string;
   category: string;
-  minStock?: number;
+  min_stock?: number;
 }
 
 export type DialogMode = 'create' | 'edit' | 'view';

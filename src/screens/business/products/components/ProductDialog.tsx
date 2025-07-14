@@ -50,7 +50,7 @@ export const ProductDialog: React.FC<ProductDialogProps> = ({
           cost: product.cost || 0,
           barcode: product.barcode || '',
           category: product.category,
-          minStock: product.minStock || 0,
+          min_stock: product.min_stock || 0,
         });
       } else {
         reset();

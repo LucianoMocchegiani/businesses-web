@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { PurchaseEntity } from '@/types/business';
 import { purchaseService, GetPurchasesParams, PurchasesResponse } from '@/services/purchaseService';
 import { useSnackbar } from '@/hooks/useSnackbar';
-import { PurchaseFormData, DialogMode } from '../types';
+import { PurchaseFormData, DialogMode, PurchaseStatus } from '../types';
 
 export interface UsePurchasesReturn {
   // State
@@ -73,14 +73,24 @@ export const usePurchases = (): UsePurchasesReturn => {
       };
 
       const response: PurchasesResponse = await purchaseService.getAll(searchParams);
-      setPurchases(response.data);
+      const transformedData = response.data.map((purchase: any) => ({
+        purchase_id: purchase.purchase_id,
+        supplier_name: purchase.supplier?.supplier_name || 'Proveedor no disponible',
+        total_amount: purchase.total_amount,
+        status: purchase.status,
+        created_at: purchase.created_at,
+        updated_at: purchase.updated_at,
+        purchase_details: purchase.purchaseDetails || []
+      }));
+
+      setPurchases(transformedData);
 
       // Only update pagination metadata (total, totalPages) but not page/limit
       // to avoid infinite loops
       setPagination(prev => ({
         ...prev,
         total: response.total,
-        totalPages: response.lastPage
+        totalPages: response.last_page
       }));
     } catch (error) {
       console.error('Error loading purchases:', error);
@@ -109,9 +119,9 @@ export const usePurchases = (): UsePurchasesReturn => {
   };
 
   const handleDelete = async (purchase: PurchaseEntity) => {
-    if (window.confirm(`¿Estás seguro de que deseas eliminar la compra de ${purchase.supplierName || 'Proveedor sin nombre'}?`)) {
+    if (window.confirm(`¿Estás seguro de que deseas eliminar la compra de ${purchase.supplier_name || 'Proveedor sin nombre'}?`)) {
       try {
-        await purchaseService.delete(purchase.id);
+        await purchaseService.delete(purchase.purchase_id);
         loadPurchases();
         showSnackbar('Compra eliminada exitosamente', 'success');
       } catch (error) {
@@ -122,9 +132,9 @@ export const usePurchases = (): UsePurchasesReturn => {
   };
 
   const handleCancel = async (purchase: PurchaseEntity) => {
-    if (window.confirm(`¿Estás seguro de que deseas cancelar la compra de ${purchase.supplierName || 'Proveedor sin nombre'}?`)) {
+    if (window.confirm(`¿Estás seguro de que deseas cancelar la compra de ${purchase.supplier_name || 'Proveedor sin nombre'}?`)) {
       try {
-        await purchaseService.cancel(purchase.id);
+        await purchaseService.cancel(purchase.purchase_id);
         loadPurchases();
         showSnackbar('Compra cancelada exitosamente', 'success');
       } catch (error) {
@@ -136,7 +146,7 @@ export const usePurchases = (): UsePurchasesReturn => {
 
   const handleMarkInTransit = async (purchase: PurchaseEntity) => {
     try {
-      await purchaseService.markAsInTransit(purchase.id);
+      await purchaseService.markAsInTransit(purchase.purchase_id);
       loadPurchases();
       showSnackbar('Compra marcada como en tránsito', 'success');
     } catch (error) {
@@ -152,7 +162,7 @@ export const usePurchases = (): UsePurchasesReturn => {
 
   const handleComplete = async (purchase: PurchaseEntity) => {
     try {
-      await purchaseService.completePurchase(purchase.id);
+      await purchaseService.completePurchase(purchase.purchase_id);
       loadPurchases();
       showSnackbar('Compra completada exitosamente', 'success');
     } catch (error) {
@@ -171,10 +181,10 @@ export const usePurchases = (): UsePurchasesReturn => {
 
     try {
       await purchaseService.receivePurchase({
-        purchaseId: selectedPurchase.id,
-        receivedBy: 'current-user-id', // This should come from auth context
-        actualDeliveryDate: new Date(),
-        purchaseDetails: receiveData.purchaseDetails || []
+        purchase_id: selectedPurchase.purchase_id,
+        received_by: 'current-user-id', // This should come from auth context
+        actual_delivery_date: new Date(),
+        purchase_details: receiveData.purchase_details || []
       });
       loadPurchases();
       setReceiveDialogOpen(false);
@@ -194,34 +204,34 @@ export const usePurchases = (): UsePurchasesReturn => {
   const handleSubmit = async (data: PurchaseFormData) => {
     try {
       // Transform PurchaseDetailFormData to match service interface
-      const transformedDetails = data.purchaseDetails.map(detail => ({
-        productId: detail.productId,
-        productName: detail.productName,
-        quantity: detail.quantityOrdered,
+      const transformedDetails = data.purchase_details.map(detail => ({
+        product_id: detail.product_id,
+        product_name: detail.product_name,
+        quantity: detail.quantity_ordered,
         price: detail.price,
-        totalAmount: detail.totalAmount,
-        lotNumber: detail.lotNumber,
-        entryDate: detail.entryDate,
-        expirationDate: detail.expirationDate,
+        total_amount: detail.total_amount,
+        lot_number: detail.lot_number,
+        entry_date: detail.entry_date,
+        expiration_date: detail.expiration_date,
       }));
 
       if (dialogMode === 'create') {
         await purchaseService.create({
-          supplierId: data.supplierId,
-          supplierName: data.supplierName,
-          totalAmount: data.totalAmount,
-          status: data.status,
-          purchaseDetails: transformedDetails
+          supplier_id: data.supplier_id,
+          supplier_name: data.supplier_name,
+          total_amount: data.total_amount,
+          status: data.status as PurchaseStatus,
+          purchase_details: transformedDetails
         });
         showSnackbar('Compra creada exitosamente', 'success');
       } else if (dialogMode === 'edit' && selectedPurchase) {
         await purchaseService.update({
-          id: selectedPurchase.id,
-          supplierId: data.supplierId,
-          supplierName: data.supplierName,
-          totalAmount: data.totalAmount,
-          status: data.status,
-          purchaseDetails: transformedDetails
+          purchase_id: selectedPurchase.purchase_id,
+          supplier_id: data.supplier_id,
+          supplier_name: data.supplier_name,
+          total_amount: data.total_amount,
+          status: data.status as PurchaseStatus,
+          purchase_details: transformedDetails
         });
         showSnackbar('Compra actualizada exitosamente', 'success');
       }

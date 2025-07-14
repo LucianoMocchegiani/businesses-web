@@ -60,13 +60,13 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
   React.useEffect(() => {
     if (purchase && open) {
       const initialDetails: typeof productDetails = {};
-      purchase.purchaseDetails.forEach(detail => {
-        initialDetails[detail.productId] = {
+      purchase.purchase_details.forEach(detail => {
+        initialDetails[detail.product_id] = {
           quantityReceived: detail.quantity,
           qualityCheck: 'APPROVED',
           qualityNotes: '',
-          lotNumber: detail.lotNumber || generateLotNumber(detail.productId),
-          expirationDate: detail.expirationDate ? new Date(detail.expirationDate) : null,
+          lotNumber: detail.lot_number || generateLotNumber(detail.product_id),
+          expirationDate: detail.expiration_date ? new Date(detail.expiration_date) : null,
           warehouseLocation: 'A-1-1',
         };
       });
@@ -101,19 +101,19 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
       setLoading(true);
 
       const request: ReceivePurchaseRequest = {
-        purchaseId: purchase.id,
-        receivedBy: receivedBy.trim(),
-        actualDeliveryDate,
-        purchaseDetails: purchase.purchaseDetails.map(detail => ({
-          productId: detail.productId,
-          quantityReceived: productDetails[detail.productId]?.quantityReceived || detail.quantity,
-          qualityCheck: productDetails[detail.productId]?.qualityCheck || 'APPROVED',
-          qualityNotes: productDetails[detail.productId]?.qualityNotes,
-          lotNumber: productDetails[detail.productId]?.lotNumber,
-          expirationDate: productDetails[detail.productId]?.expirationDate || undefined,
-          warehouseLocation: productDetails[detail.productId]?.warehouseLocation,
+        purchase_id: purchase.purchase_id,
+        received_by: receivedBy.trim(),
+        actual_delivery_date: actualDeliveryDate,
+        purchase_details: purchase.purchase_details.map(detail => ({
+          product_id: detail.product_id,
+          quantity_received: productDetails[detail.product_id]?.quantityReceived || detail.quantity,
+          quality_check: productDetails[detail.product_id]?.qualityCheck || 'APPROVED',
+          quality_notes: productDetails[detail.product_id]?.qualityNotes,
+          lot_number: productDetails[detail.product_id]?.lotNumber,
+          expiration_date: productDetails[detail.product_id]?.expirationDate || undefined,
+          warehouse_location: productDetails[detail.product_id]?.warehouseLocation,
         })),
-        generalNotes: generalNotes.trim() || undefined,
+        general_notes: generalNotes.trim() || undefined,
       };
 
       await onReceive(request);
@@ -126,7 +126,7 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
   };
 
   const canReceive = purchase?.status === 'ORDERED' || purchase?.status === 'IN_TRANSIT';
-  const totalOrdered = purchase?.purchaseDetails.reduce((sum, detail) => sum + detail.quantity, 0) || 0;
+  const totalOrdered = purchase?.purchase_details.reduce((sum, detail) => sum + detail.quantity, 0) || 0;
   const totalReceived = Object.values(productDetails).reduce((sum, detail) => sum + detail.quantityReceived, 0);
 
   if (!purchase) return null;
@@ -136,7 +136,7 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
-            Receive Purchase - {purchase.supplierName}
+            Receive Purchase - {purchase.supplier_name}
           </Typography>
           <Chip 
             label={purchase.status} 
@@ -220,11 +220,11 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {purchase.purchaseDetails.map((detail) => (
-                <TableRow key={detail.id}>
+              {purchase.purchase_details.map((detail) => (
+                <TableRow key={detail.purchase_detail_id}>
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
-                      {detail.productName}
+                      {detail.product_name}
                     </Typography>
                   </TableCell>
                   
@@ -238,9 +238,9 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
                     <TextField
                       type="number"
                       size="small"
-                      value={productDetails[detail.productId]?.quantityReceived || detail.quantity}
+                      value={productDetails[detail.product_id]?.quantityReceived || detail.quantity}
                       onChange={(e) => updateProductDetail(
-                        detail.productId, 
+                        detail.product_id, 
                         'quantityReceived', 
                         Number(e.target.value)
                       )}
@@ -252,9 +252,9 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
                   <TableCell>
                     <FormControl size="small" sx={{ minWidth: 120 }}>
                       <Select
-                        value={productDetails[detail.productId]?.qualityCheck || 'APPROVED'}
+                        value={productDetails[detail.product_id]?.qualityCheck || 'APPROVED'}
                         onChange={(e) => updateProductDetail(
-                          detail.productId, 
+                          detail.product_id, 
                           'qualityCheck', 
                           e.target.value
                         )}
@@ -269,9 +269,9 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
                   <TableCell>
                     <TextField
                       size="small"
-                      value={productDetails[detail.productId]?.lotNumber || ''}
+                      value={productDetails[detail.product_id]?.lotNumber || ''}
                       onChange={(e) => updateProductDetail(
-                        detail.productId, 
+                        detail.product_id, 
                         'lotNumber', 
                         e.target.value
                       )}
@@ -282,9 +282,9 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
                   <TableCell>
                     <DatePicker
                       label=""
-                      value={productDetails[detail.productId]?.expirationDate}
+                      value={productDetails[detail.product_id]?.expirationDate}
                       onChange={(date) => updateProductDetail(
-                        detail.productId, 
+                        detail.product_id, 
                         'expirationDate', 
                         date
                       )}
@@ -296,9 +296,9 @@ export const ReceivePurchaseDialog: React.FC<ReceivePurchaseDialogProps> = ({
                     <TextField
                       size="small"
                       placeholder="A-1-1"
-                      value={productDetails[detail.productId]?.warehouseLocation || ''}
+                      value={productDetails[detail.product_id]?.warehouseLocation || ''}
                       onChange={(e) => updateProductDetail(
-                        detail.productId, 
+                        detail.product_id, 
                         'warehouseLocation', 
                         e.target.value
                       )}

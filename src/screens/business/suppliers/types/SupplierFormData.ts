@@ -1,11 +1,9 @@
 export interface SupplierFormData {
-  name: string;
-  contactName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  taxId?: string;
-  notes?: string;
+  supplier_name: string;
+  contact_email?: string;
+  contact_phone?: string;
+  contact_location?: string;
+  contact_description?: string;
 }
 
 export type DialogMode = 'create' | 'edit' | 'view';

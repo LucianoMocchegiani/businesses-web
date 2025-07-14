@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Chip } from '@mui/material';
+import { Card, CardContent } from '@mui/material';
 import {
   DataGrid,
   GridColDef,
@@ -30,42 +30,30 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({
 }) => {
   const columns: GridColDef[] = [
     {
-      field: 'name',
-      headerName: 'Customer',
+      field: 'customer_name',
+      headerName: 'Customer Name',
       width: 150,
       minWidth: 120,
     },
     {
-      field: 'email',
-      headerName: 'Email',
+      field: 'contact_email',
+      headerName: 'Contact Email',
       width: 180,
       minWidth: 150,
     },
     {
-      field: 'phone',
-      headerName: 'Phone',
+      field: 'contact_phone',
+      headerName: 'Contact Phone',
       width: 120,
     },
     {
-      field: 'address',
-      headerName: 'Address',
+      field: 'contact_location',
+      headerName: 'Contact Location',
       width: 200,
       minWidth: 150,
     },
     {
-      field: 'isActive',
-      headerName: 'Status',
-      width: 90,
-      renderCell: (params) => (
-        <Chip
-          label={params.value ? 'Active' : 'Inactive'}
-          color={params.value ? 'success' : 'default'}
-          size="small"
-        />
-      ),
-    },
-    {
-      field: 'createdAt',
+      field: 'created_at',
       headerName: 'Created',
       width: 100,
       renderCell: (params) => {
@@ -108,6 +96,7 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({
           rows={customers}
           columns={columns}
           loading={loading}
+          getRowId={(row) => row.customer_id}
           pageSizeOptions={[10, 25, 50]}
           initialState={{
             pagination: { paginationModel: { pageSize: 10 } },

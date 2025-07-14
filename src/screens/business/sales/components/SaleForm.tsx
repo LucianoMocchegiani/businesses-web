@@ -79,8 +79,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           <Autocomplete
             options={customers}
             loading={customersLoading}
-            getOptionLabel={(option) => option.name}
-            value={customers.find(c => c.id === formData.customerId) || null}
+            getOptionLabel={(option) => option.customer_name}
+            value={customers.find(c => c.customer_id === formData.customer_id) || null}
             onChange={(_, value) => handleCustomerChange(value)}
             disabled={isReadOnly || !canEdit}
             renderInput={(params) => (
@@ -97,9 +97,9 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         <Grid item xs={12} md={6}>
           <TextField
             label="Custom Customer Name"
-            value={formData.customerName}
-            onChange={(e) => handleInputChange('customerName', e.target.value)}
-            disabled={isReadOnly || !canEdit || !!formData.customerId}
+            value={formData.customer_name}
+            onChange={(e) => handleInputChange('customer_name', e.target.value)}
+            disabled={isReadOnly || !canEdit || !!formData.customer_id}
             fullWidth
             helperText="Use this for walk-in customers or override selected customer name"
           />
@@ -125,7 +125,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         <Grid item xs={12} md={6}>
           <TextField
             label="Total Amount"
-            value={`$${formData.totalAmount?.toFixed(2) || '0.00'}`}
+            value={`$${formData.total_amount?.toFixed(2) || '0.00'}`}
             disabled
             fullWidth
           />
@@ -179,7 +179,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                       options={products}
                       loading={productsLoading}
                       getOptionLabel={(option) => option.name}
-                      value={products.find(p => p.id === newItem.productId) || null}
+                      value={products.find(p => p.id === newItem.product_id) || null}
                       onChange={(_, value) => handleProductChange(value)}
                       renderInput={(params) => (
                         <TextField
@@ -215,7 +215,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                   <Grid item xs={6} md={2}>
                     <TextField
                       label="Total"
-                      value={`$${newItem.totalAmount?.toFixed(2) || '0.00'}`}
+                      value={`$${newItem.total_amount?.toFixed(2) || '0.00'}`}
                       disabled
                       size="small"
                       fullWidth
@@ -225,7 +225,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                     <Button
                       variant="contained"
                       onClick={handleAddItem}
-                      disabled={!newItem.productId || !newItem.quantity || !newItem.price}
+                      disabled={!newItem.product_id || !newItem.quantity || !newItem.price}
                       startIcon={<AddIcon />}
                       fullWidth
                     >
@@ -257,19 +257,19 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {formData.saleDetails.length === 0 ? (
+                    {formData.sale_details.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={canEdit ? 5 : 4} align="center">
                           No items added yet
                         </TableCell>
                       </TableRow>
                     ) : (
-                      formData.saleDetails.map((item, index) => (
+                      formData.sale_details.map((item, index) => (
                         <TableRow key={index}>
-                          <TableCell>{item.productName}</TableCell>
+                          <TableCell>{item.product_name}</TableCell>
                           <TableCell align="right">{item.quantity}</TableCell>
                           <TableCell align="right">${item.price.toFixed(2)}</TableCell>
-                          <TableCell align="right">${item.totalAmount.toFixed(2)}</TableCell>
+                          <TableCell align="right">${item.total_amount.toFixed(2)}</TableCell>
                           {canEdit && (
                             <TableCell align="center">
                               <IconButton
@@ -301,7 +301,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               <Button
                 type="submit"
                 variant="contained"
-                disabled={formData.saleDetails.length === 0}
+                disabled={formData.sale_details.length === 0}
               >
                 {mode === 'create' ? 'Create Sale' : 'Update Sale'}
               </Button>
