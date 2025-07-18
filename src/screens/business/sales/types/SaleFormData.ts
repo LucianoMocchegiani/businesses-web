@@ -14,7 +14,7 @@ export interface SaleFormData {
   total_amount?: number;
   status: SaleStatus;
   comments?: string;
-  sale_details: SaleDetailFormData[];
+  saleDetails: SaleDetailFormData[];
   notes?: string;
 }
 

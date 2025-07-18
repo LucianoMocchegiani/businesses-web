@@ -14,6 +14,7 @@ import {
   Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { SaleEntity } from '@/types/business';
+import { timestampToLocalDateString } from '@/utils/dateUtils';
 
 interface SaleTableProps {
   sales: SaleEntity[];
@@ -103,7 +104,7 @@ export const SaleTable: React.FC<SaleTableProps> = ({
       ),
     },
     {
-      field: 'sale_details',
+      field: 'saleDetails',
       headerName: 'Items',
       width: 70,
       renderCell: (params) => `${params.value?.length || 0} items`,
@@ -113,8 +114,7 @@ export const SaleTable: React.FC<SaleTableProps> = ({
       headerName: 'Created',
       width: 100,
       renderCell: (params) => {
-        const date = new Date(params.value);
-        return date.toLocaleDateString();
+        return timestampToLocalDateString(params.value) || 'N/A';
       },
     },
     {

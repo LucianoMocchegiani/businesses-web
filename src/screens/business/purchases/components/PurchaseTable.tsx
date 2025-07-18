@@ -7,38 +7,24 @@ import {
   GridRowParams,
 } from '@mui/x-data-grid';
 import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Visibility as ViewIcon,
   Cancel as CancelIcon,
-  LocalShipping as TransitIcon,
-  Inventory as ReceiveIcon,
-  CheckCircle as CompleteIcon,
 } from '@mui/icons-material';
 import { PurchaseEntity } from '@/types/business';
+import { timestampToLocalDateString } from '@/utils/dateUtils';
 
 interface PurchaseTableProps {
   purchases: PurchaseEntity[];
   loading: boolean;
   onView: (purchase: PurchaseEntity) => void;
-  onEdit: (purchase: PurchaseEntity) => void;
-  onDelete: (purchase: PurchaseEntity) => void;
   onCancel: (purchase: PurchaseEntity) => void;
-  onMarkInTransit: (purchase: PurchaseEntity) => void;
-  onReceive: (purchase: PurchaseEntity) => void;
-  onComplete: (purchase: PurchaseEntity) => void;
 }
 
 export const PurchaseTable: React.FC<PurchaseTableProps> = ({
   purchases,
   loading,
   onView,
-  onEdit,
-  onDelete,
   onCancel,
-  onMarkInTransit,
-  onReceive,
-  onComplete,
 }) => {
   const columns: GridColDef[] = [
     {
@@ -52,7 +38,10 @@ export const PurchaseTable: React.FC<PurchaseTableProps> = ({
       field: 'total_amount',
       headerName: 'Total',
       width: 100,
-      renderCell: (params) => `$${params.value.toFixed(2)}`,
+      renderCell: (params) => {
+        const value = Number(params.value);
+        return isNaN(value) ? 'N/A' : `$${value.toFixed(2)}`;
+      },
     },
     {
       field: 'status',
@@ -103,8 +92,7 @@ export const PurchaseTable: React.FC<PurchaseTableProps> = ({
       headerName: 'Created',
       width: 100,
       renderCell: (params) => {
-        const date = new Date(params.value);
-        return date.toLocaleDateString();
+        return timestampToLocalDateString(params.value) || 'N/A';
       },
     },
     {
@@ -123,68 +111,17 @@ export const PurchaseTable: React.FC<PurchaseTableProps> = ({
           />,
         ];
 
-        // Only show edit and workflow actions for non-canceled purchases
+        // Solo mostrar cancelar si no está cancelada
         if (purchase.status !== 'CANCELED') {
           actions.push(
             <GridActionsCellItem
-              key="edit"
-              icon={<EditIcon />}
-              label="Edit"
-              onClick={() => onEdit(purchase)}
+              key="cancel"
+              icon={<CancelIcon />}
+              label="Cancel"
+              onClick={() => onCancel(purchase)}
             />
           );
-          
-          // Workflow actions based on status
-          switch (purchase.status) {
-            case 'PENDING':
-              actions.push(
-                <GridActionsCellItem
-                  key="transit"
-                  icon={<TransitIcon />}
-                  label="Mark In Transit"
-                  onClick={() => onMarkInTransit(purchase)}
-                />,
-                <GridActionsCellItem
-                  key="cancel"
-                  icon={<CancelIcon />}
-                  label="Cancel"
-                  onClick={() => onCancel(purchase)}
-                />
-              );
-              break;
-              
-            case 'IN_TRANSIT':
-              actions.push(
-                <GridActionsCellItem
-                  key="receive"
-                  icon={<ReceiveIcon />}
-                  label="Receive"
-                  onClick={() => onReceive(purchase)}
-                />
-              );
-              break;
-              
-            case 'RECEIVED':
-              actions.push(
-                <GridActionsCellItem
-                  key="complete"
-                  icon={<CompleteIcon />}
-                  label="Complete"
-                  onClick={() => onComplete(purchase)}
-                />
-              );
-              break;
-          }
         }
-
-        actions.push(
-          <GridActionsCellItem
-            key="delete"
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={() => onDelete(purchase)}
-          />
-        );
 
         return actions;
       },

@@ -18,6 +18,7 @@ import {
   QuickInsightsCard,
   RecentActivityCard
 } from './components';
+import { timestampToLocalDateString } from '@/utils/dateUtils';
 
 export const DashboardScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export const DashboardScreen: React.FC = () => {
           </Typography>
           {lastRefresh && (
             <Typography variant="caption" color="textSecondary">
-              Last updated: {lastRefresh.toLocaleTimeString()}
+              Last updated: {timestampToLocalDateString(lastRefresh)}
             </Typography>
           )}
         </Box>

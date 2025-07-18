@@ -12,6 +12,7 @@ import {
   Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { Customer } from '@/types/business';
+import { timestampToLocalDateString } from '@/utils/dateUtils';
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -57,8 +58,7 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({
       headerName: 'Created',
       width: 100,
       renderCell: (params) => {
-        const date = new Date(params.value);
-        return date.toLocaleDateString();
+        return timestampToLocalDateString(params.value) || 'N/A';
       },
     },
     {

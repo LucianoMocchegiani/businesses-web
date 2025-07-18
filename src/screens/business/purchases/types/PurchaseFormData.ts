@@ -1,13 +1,15 @@
+import { Timestamp } from '@/utils/dateUtils';
+
 export interface PurchaseFormData {
   supplier_id?: string;
   supplier_name?: string;
   total_amount?: number;
   status?: string;
   comments?: string;
-  purchase_details: PurchaseDetailFormData[];
+  purchaseDetails: PurchaseDetailFormData[];
   // Nuevos campos para recepción
-  expected_delivery_date?: string;
-  actual_delivery_date?: string;
+  expected_delivery_date?: Timestamp;
+  actual_delivery_date?: Timestamp;
   received_by?: string;
   quality_notes?: string;
   invoice_number?: string;
@@ -23,8 +25,8 @@ export interface PurchaseDetailFormData {
   
   // Gestión de lotes e inventario
   lot_number?: string;
-  entry_date?: string;
-  expiration_date?: string;
+  entry_date?: Timestamp;
+  expiration_date?: Timestamp;
   batch_notes?: string;
   
   // Control de calidad
@@ -55,8 +57,8 @@ export interface LotCreationData {
   lot_number: string;
   quantity: number;
   unit_cost: number;
-  entry_date: Date;
-  expiration_date?: Date;
+  entry_date: Timestamp;
+  expiration_date?: Timestamp;
   supplier_id: string;
   purchase_id: string;
   location?: string;

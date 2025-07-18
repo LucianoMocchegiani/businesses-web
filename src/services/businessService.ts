@@ -1,4 +1,5 @@
 import { apiService } from './apiService';
+import { Timestamp } from '@/utils/dateUtils';
 
 export interface CreateBusinessData {
   name: string;
@@ -14,8 +15,8 @@ export interface BusinessWithProfile {
     business_address?: string;
     business_phone?: string;
     owner_id?: number;
-    created_at: string;
-    updated_at: string;
+    created_at: Timestamp;
+    updated_at: Timestamp;
   };
   profile: {
     profile_id: number;

@@ -5,27 +5,26 @@ import {
   LotCreationData, 
   PurchaseStatus as FormPurchaseStatus 
 } from '@/screens/business/purchases/types';
+import { Timestamp } from '@/utils/dateUtils';
 
 export interface CreatePurchaseRequest {
   supplier_id?: string;
   supplier_name?: string;
-  total_amount?: number;
   status?: PurchaseStatus;
-  purchase_details: {
-    product_id: string;
-    product_name: string;
+  purchaseDetails: {
+    global_product_id?: string;
+    business_product_id?: string;
     quantity: number;
     price: number;
-    total_amount?: number;
     lot_number?: string;
-    entry_date?: string;
-    expiration_date?: string;
+    entry_date?: Timestamp;
+    expiration_date?: Timestamp;
   }[];
 }
 
 export interface UpdatePurchaseRequest extends Partial<CreatePurchaseRequest> {
   purchase_id: string;
-  actual_delivery_date?: string;
+  actual_delivery_date?: Timestamp;
   received_by?: string;
   invoice_number?: string;
 }
@@ -38,8 +37,8 @@ export interface GetPurchasesParams {
   supplier_name?: string;
   total_amount?: number;
   status?: PurchaseStatus;
-  created_at?: string;
-  updated_at?: string;
+  created_at?: Timestamp;
+  updated_at?: Timestamp;
 }
 
 export interface PurchasesResponse {
@@ -52,14 +51,14 @@ export interface PurchasesResponse {
 export interface ReceivePurchaseRequest {
   purchase_id: string;
   received_by: string;
-  actual_delivery_date: Date;
-  purchase_details: {
+  actual_delivery_date: Timestamp;
+  purchaseDetails: {
     product_id: string;
     quantity_received: number;
     quality_check?: 'APPROVED' | 'REJECTED' | 'PARTIALLY_APPROVED';
     quality_notes?: string;
     lot_number?: string;
-    expiration_date?: Date;
+    expiration_date?: Timestamp;
     warehouse_location?: string;
   }[];
   general_notes?: string;
@@ -80,8 +79,8 @@ class PurchaseService {
       if (params.supplier_name) queryParams.append('supplier_name', params.supplier_name);
       if (params.total_amount) queryParams.append('total_amount', params.total_amount.toString());
       if (params.status) queryParams.append('status', params.status);
-      if (params.created_at) queryParams.append('created_at', params.created_at);
-      if (params.updated_at) queryParams.append('updated_at', params.updated_at);
+      if (params.created_at) queryParams.append('created_at', params.created_at.toString());
+      if (params.updated_at) queryParams.append('updated_at', params.updated_at.toString());
       
       const queryString = queryParams.toString();
       const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
@@ -147,18 +146,18 @@ class PurchaseService {
       const updatedPurchase = await this.update({
         purchase_id: request.purchase_id,
         status: 'RECEIVED',
-        actual_delivery_date: request.actual_delivery_date.toISOString(),
+        actual_delivery_date: request.actual_delivery_date,
         received_by: request.received_by
       });
       
       // 2. Crear datos de lotes para inventario
-      const lotData: LotCreationData[] = request.purchase_details.map(detail => ({
+      const lotData: LotCreationData[] = request.purchaseDetails.map(detail => ({
         product_id: detail.product_id,
         lot_number: detail.lot_number || this.generateLotNumber(detail.product_id),
         quantity: detail.quantity_received,
         unit_cost: this.getProductCostFromPurchase(updatedPurchase, detail.product_id),
         entry_date: request.actual_delivery_date,
-        expiration_date: detail.expiration_date,
+        expiration_date: detail.expiration_date ? detail.expiration_date : undefined,
         supplier_id: updatedPurchase.supplier_id || '',
         purchase_id: request.purchase_id,
         location: detail.warehouse_location
@@ -226,7 +225,7 @@ class PurchaseService {
   }
   
   private getProductCostFromPurchase(purchase: PurchaseEntity, product_id: string): number {
-    const detail = purchase.purchase_details.find(d => d.product_id === product_id);
+    const detail = purchase.purchaseDetails.find(d => d.product_id === product_id);
     return detail?.price || 0;
   }
 }

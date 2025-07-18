@@ -17,11 +17,13 @@ export interface QuickInsight {
   description?: string;
 }
 
+import { Timestamp } from '@/utils/dateUtils';
+
 export interface RecentActivity {
   id: string;
   type: 'order' | 'customer' | 'inventory' | 'payment' | 'alert';
   message: string;
-  timestamp: Date;
+  timestamp: Timestamp;
   icon: 'cart' | 'people' | 'inventory' | 'money' | 'warning';
   color: 'primary' | 'secondary' | 'success' | 'warning' | 'error';
 }
@@ -38,8 +40,8 @@ export interface StatsCardProps {
 
 export interface DashboardFilters {
   dateRange: 'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
-  startDate?: Date;
-  endDate?: Date;
+  startDate?: Timestamp;
+  endDate?: Timestamp;
   businessUnit?: string;
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Box,
   TextField,
@@ -17,16 +17,17 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Autocomplete,
 } from '@mui/material';
 import { 
   Add as AddIcon, 
   Delete as DeleteIcon,
   ShoppingCart as CartIcon,
 } from '@mui/icons-material';
-import { PurchaseFormData, PurchaseDetailFormData, DialogMode } from '../types';
+import { PurchaseFormData, DialogMode } from '../types';
 import { PurchaseEntity } from '@/types/business';
-import { BarcodeSearchInput, ProductSearchResult } from '@/components/BarcodeScanner';
-import { productSearchService } from '@/services/productSearchService';
+import { BarcodeSearchInput } from '@/components/BarcodeScanner';
+import { usePurchaseForm, useProducts, useSuppliers } from '../hooks';
 
 interface PurchaseFormProps {
   mode: DialogMode;
@@ -41,181 +42,32 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const [formData, setFormData] = useState<PurchaseFormData>({
-    supplier_name: '',
-    total_amount: 0,
-    status: 'PENDING',
-    purchase_details: [
-      {
-        product_id: '',
-        product_name: '',
-        quantity_ordered: 1,
-        price: 0,
-        lot_number: '',
-        entry_date: new Date().toISOString().split('T')[0],
-        expiration_date: '',
-      }
-    ],
-  });
+  const {
+    formData,
+    newItem,
+    handleInputChange,
+    handleProductSearch,
+    handleProductSelect,
+    handleSupplierChange,
+    handleProductChange,
+    handleNewItemChange,
+    handleAddItem,
+    handleRemoveItem,
+  } = usePurchaseForm({ initialData });
 
-  const isReadOnly = mode === 'view';
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        supplier_id: initialData.supplier_id,
-        supplier_name: initialData.supplier_name || '',
-        total_amount: initialData.total_amount,
-        status: initialData.status,
-        purchase_details: initialData.purchase_details.map(detail => ({
-          product_id: detail.product_id,
-          product_name: detail.product_name,
-          quantity_ordered: detail.quantity,
-          price: detail.price,
-          total_amount: detail.total_amount,
-          lot_number: detail.lot_number || '',
-          entry_date: detail.entry_date ? detail.entry_date.split('T')[0] : '',
-          expiration_date: detail.expiration_date ? detail.expiration_date.split('T')[0] : '',
-        })),
-      });
-    }
-  }, [initialData]);
-
-  const handleChange = (field: keyof PurchaseFormData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleProductSearch = async (query: string): Promise<ProductSearchResult[]> => {
-    return await productSearchService.searchProducts(query);
-  };
-
-  const handleProductSelect = (product: ProductSearchResult) => {
-    // Check if product is already in the list
-    const existingItemIndex = formData.purchase_details.findIndex(
-      item => item.product_id === product.id
-    );
-
-    if (existingItemIndex >= 0) {
-      // Increase quantity if product already exists
-      const updatedDetails = [...formData.purchase_details];
-      updatedDetails[existingItemIndex] = {
-        ...updatedDetails[existingItemIndex],
-        quantity_ordered: updatedDetails[existingItemIndex].quantity_ordered + 1,
-        total_amount: (updatedDetails[existingItemIndex].quantity_ordered + 1) * updatedDetails[existingItemIndex].price,
-      };
-      
-      setFormData(prev => ({
-        ...prev,
-        purchase_details: updatedDetails,
-      }));
-    } else {
-      // Add new product to the list
-      const newPurchaseDetail: PurchaseDetailFormData = {
-        product_id: product.id,
-        product_name: product.name,
-        quantity_ordered: 1,
-        price: product.price,
-        total_amount: product.price,
-        lot_number: '',
-        entry_date: new Date().toISOString().split('T')[0],
-        expiration_date: '',
-      };
-
-      setFormData(prev => ({
-        ...prev,
-        purchase_details: [...prev.purchase_details, newPurchaseDetail],
-      }));
-    }
-
-    // Recalculate total
-    const totalAmount = formData.purchase_details.reduce((sum, detail) => sum + (detail.total_amount || 0), 0);
-    setFormData(prev => ({
-      ...prev,
-      totalAmount,
-    }));
-  };
-
-  const handleDetailChange = (index: number, field: keyof PurchaseDetailFormData, value: any) => {
-    const updatedDetails = [...formData.purchase_details];
-    updatedDetails[index] = {
-      ...updatedDetails[index],
-      [field]: value,
-    };
-
-    // Auto-calculate total amount for the detail
-    if (field === 'quantity_ordered' || field === 'price') {
-      const detail = updatedDetails[index];
-      detail.total_amount = detail.quantity_ordered * detail.price;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      purchase_details: updatedDetails,
-    }));
-
-    // Auto-calculate total amount for the purchase
-    const totalAmount = updatedDetails.reduce((sum, detail) => sum + (detail.total_amount || 0), 0);
-    setFormData(prev => ({
-      ...prev,
-      total_amount: totalAmount,
-    }));
-  };
-
-  const addDetail = () => {
-    setFormData(prev => ({
-      ...prev,
-      purchase_details: [
-        ...prev.purchase_details,
-        {
-          product_id: '',
-          product_name: '',
-          quantity_ordered: 1,
-          price: 0,
-          lot_number: '',
-          entry_date: new Date().toISOString().split('T')[0],
-          expiration_date: '',
-        }
-      ],
-    }));
-  };
-
-  const removeDetail = (index: number) => {
-    if (formData.purchase_details.length > 1) {
-      const updatedDetails = formData.purchase_details.filter((_, i) => i !== index);
-      setFormData(prev => ({
-        ...prev,
-        purchase_details: updatedDetails,
-      }));
-
-      // Recalculate total amount
-      const totalAmount = updatedDetails.reduce((sum, detail) => sum + (detail.total_amount || 0), 0);
-      setFormData(prev => ({
-        ...prev,
-        total_amount: totalAmount,
-      }));
-    }
-  };
+  const { products, loading: productsLoading } = useProducts();
+  const { suppliers, loading: suppliersLoading } = useSuppliers();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
 
-  const isFormValid = () => {
-    return (formData.supplier_name?.trim() || '') !== '' &&
-           formData.purchase_details.length > 0 &&
-           formData.purchase_details.every(detail => 
-             detail.product_name.trim() !== '' &&
-             detail.quantity_ordered > 0 &&
-             detail.price >= 0
-           );
-  };
+  const isReadOnly = mode === 'view';
+  const canEdit = !isReadOnly && formData.status !== 'CANCELED';
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', maxWidth: 800 }}>
+    <form onSubmit={handleSubmit}>
       <Grid container spacing={3}>
         {/* Basic Information */}
         <Grid item xs={12}>
@@ -224,14 +76,32 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           </Typography>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} md={6}>
+          <Autocomplete
+            options={suppliers}
+            loading={suppliersLoading}
+            getOptionLabel={(option) => option.supplier_name}
+            value={suppliers.find(s => s.supplier_id === formData.supplier_id) || null}
+            onChange={(_, value) => handleSupplierChange(value)}
+            disabled={isReadOnly || !canEdit}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Supplier"
+                placeholder="Select a supplier"
+              />
+            )}
+          />
+        </Grid>
+
+        <Grid item xs={12} md={6}>
           <TextField
-            fullWidth
-            label="Supplier Name"
+            label="Custom Supplier Name"
             value={formData.supplier_name}
-            onChange={(e) => handleChange('supplier_name', e.target.value)}
-            disabled={isReadOnly}
-            required
+            onChange={(e) => handleInputChange('supplier_name', e.target.value)}
+            disabled={isReadOnly || !canEdit || !!formData.supplier_id}
+            fullWidth
+            helperText="Use this for walk-in suppliers or override selected supplier name"
           />
         </Grid>
 
@@ -241,33 +111,35 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             label="Status"
             select
             value={formData.status}
-            onChange={(e) => handleChange('status', e.target.value)}
-            disabled={isReadOnly}
+            onChange={(e) => handleInputChange('status', e.target.value)}
+            disabled={isReadOnly || !canEdit}
           >
             <MenuItem value="PENDING">Pending</MenuItem>
+            <MenuItem value="ORDERED">Ordered</MenuItem>
+            <MenuItem value="IN_TRANSIT">In Transit</MenuItem>
+            <MenuItem value="RECEIVED">Received</MenuItem>
             <MenuItem value="COMPLETED">Completed</MenuItem>
             <MenuItem value="CANCELED">Canceled</MenuItem>
           </TextField>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} md={6}>
           <TextField
-            fullWidth
             label="Total Amount"
-            type="number"
-            value={formData.total_amount}
-            onChange={(e) => handleChange('total_amount', parseFloat(e.target.value) || 0)}
-            disabled={true} // Always calculated automatically
-            InputProps={{
-              startAdornment: '$',
-            }}
+            value={
+              isNaN(Number(formData.total_amount))
+                ? 'N/A'
+                : `$${Number(formData.total_amount).toFixed(2)}`
+            }
+            disabled
+            fullWidth
           />
         </Grid>
 
         {/* Barcode Scanner Section */}
-        {!isReadOnly && (
+        {canEdit && (
           <Grid item xs={12}>
-            <Card variant="outlined" sx={{ my: 2 }}>
+            <Card variant="outlined" sx={{ mb: 2 }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <CartIcon color="primary" />
@@ -298,123 +170,129 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           </Divider>
         </Grid>
 
-        {/* Purchase Details */}
-        <Grid item xs={12}>
-          <Divider sx={{ my: 2 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">
-              Purchase Details
-            </Typography>
-            {!isReadOnly && (
-              <Button
-                startIcon={<AddIcon />}
-                onClick={addDetail}
-                variant="outlined"
-                size="small"
-              >
-                Add Item
-              </Button>
-            )}
-          </Box>
-        </Grid>
+        {/* Add New Item Section */}
+        {canEdit && (
+          <Grid item xs={12}>
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Add Item
+                </Typography>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} md={4}>
+                    <Autocomplete
+                      options={products}
+                      loading={productsLoading}
+                      getOptionLabel={(option) => option.name}
+                      value={products.find(p => p.id === newItem.product_id) || null}
+                      onChange={(_, value) => handleProductChange(value)}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Product"
+                          size="small"
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={2}>
+                    <TextField
+                      label="Quantity"
+                      type="number"
+                      value={newItem.quantity_ordered || ''}
+                      onChange={(e) => handleNewItemChange('quantity_ordered', Number(e.target.value))}
+                      size="small"
+                      fullWidth
+                      inputProps={{ min: 1 }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={2}>
+                    <TextField
+                      label="Price"
+                      type="number"
+                      value={newItem.price || ''}
+                      onChange={(e) => handleNewItemChange('price', Number(e.target.value))}
+                      size="small"
+                      fullWidth
+                      inputProps={{ min: 0, step: 0.01 }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={2}>
+                    <TextField
+                      label="Total"
+                      value={`$${newItem.total_amount?.toFixed(2) || '0.00'}`}
+                      disabled
+                      size="small"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={2}>
+                    <Button
+                      variant="contained"
+                      onClick={handleAddItem}
+                      disabled={!newItem.product_id || !newItem.quantity_ordered || !newItem.price}
+                      startIcon={<AddIcon />}
+                      fullWidth
+                    >
+                      Add
+                    </Button>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
 
+        {/* Items Table */}
         <Grid item xs={12}>
           <Card>
             <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Purchase Items
+              </Typography>
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell>Product</TableCell>
-                      <TableCell>Quantity</TableCell>
-                      <TableCell>Price</TableCell>
-                      <TableCell>Total</TableCell>
-                      <TableCell>Lot Number</TableCell>
-                      <TableCell>Entry Date</TableCell>
-                      <TableCell>Expiration</TableCell>
-                      {!isReadOnly && <TableCell>Actions</TableCell>}
+                      <TableCell align="right">Quantity</TableCell>
+                      <TableCell align="right">Price</TableCell>
+                      <TableCell align="right">Total</TableCell>
+                      {canEdit && <TableCell align="center">Actions</TableCell>}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {formData.purchase_details.map((detail, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <TextField
-                            size="small"
-                            value={detail.product_name}
-                            onChange={(e) => handleDetailChange(index, 'product_name', e.target.value)}
-                            disabled={isReadOnly}
-                            placeholder="Product name"
-                            fullWidth
-                          />
+                    {formData.purchaseDetails.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={canEdit ? 5 : 4} align="center">
+                          No items added yet
                         </TableCell>
-                        <TableCell>
-                          <TextField
-                            size="small"
-                            type="number"
-                            value={detail.quantity_ordered}
-                            onChange={(e) => handleDetailChange(index, 'quantity_ordered', parseInt(e.target.value) || 0)}
-                            disabled={isReadOnly}
-                            sx={{ width: 80 }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            size="small"
-                            type="number"
-                            value={detail.price}
-                            onChange={(e) => handleDetailChange(index, 'price', parseFloat(e.target.value) || 0)}
-                            disabled={isReadOnly}
-                            sx={{ width: 100 }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          ${(detail.total_amount || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            size="small"
-                            value={detail.lot_number}
-                            onChange={(e) => handleDetailChange(index, 'lot_number', e.target.value)}
-                            disabled={isReadOnly}
-                            placeholder="LOT-XXX"
-                            sx={{ width: 100 }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            size="small"
-                            type="date"
-                            value={detail.entry_date}
-                            onChange={(e) => handleDetailChange(index, 'entry_date', e.target.value)}
-                            disabled={isReadOnly}
-                            sx={{ width: 140 }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            size="small"
-                            type="date"
-                            value={detail.expiration_date}
-                            onChange={(e) => handleDetailChange(index, 'expiration_date', e.target.value)}
-                            disabled={isReadOnly}
-                            sx={{ width: 140 }}
-                          />
-                        </TableCell>
-                        {!isReadOnly && (
-                          <TableCell>
-                            <IconButton
-                              size="small"
-                              onClick={() => removeDetail(index)}
-                              disabled={formData.purchase_details.length === 1}
-                              color="error"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        )}
                       </TableRow>
-                    ))}
+                    ) : (
+                      formData.purchaseDetails.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.product_name}</TableCell>
+                          <TableCell align="right">{item.quantity_ordered}</TableCell>
+                          <TableCell align="right">
+                            {isNaN(Number(item.price)) ? 'N/A' : `$${Number(item.price).toFixed(2)}`}
+                          </TableCell>
+                          <TableCell align="right">
+                            {isNaN(Number(item.total_amount)) ? 'N/A' : `$${Number(item.total_amount).toFixed(2)}`}
+                          </TableCell>
+                          {canEdit && (
+                            <TableCell align="center">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleRemoveItem(index)}
+                                color="error"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -424,15 +302,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
 
         {/* Form Actions */}
         <Grid item xs={12}>
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', pt: 2 }}>
-            <Button onClick={onCancel}>
+          <Box display="flex" justifyContent="flex-end" gap={2}>
+            <Button variant="outlined" onClick={onCancel}>
               {isReadOnly ? 'Close' : 'Cancel'}
             </Button>
-            {!isReadOnly && (
+            {!isReadOnly && canEdit && (
               <Button
                 type="submit"
                 variant="contained"
-                disabled={!isFormValid()}
+                disabled={formData.purchaseDetails.length === 0}
               >
                 {mode === 'create' ? 'Create Purchase' : 'Update Purchase'}
               </Button>
@@ -440,6 +318,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           </Box>
         </Grid>
       </Grid>
-    </Box>
+    </form>
   );
 };

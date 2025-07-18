@@ -10,6 +10,7 @@ import { useSnackbar } from '@/hooks/useSnackbar';
 import { customerService } from '@/services/customerService';
 import { productService } from '@/services/productService';
 import { saleService } from '@/services/saleService';
+import { getCurrentTimestamp } from '@/utils/dateUtils';
 
 export const useDashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -30,7 +31,7 @@ export const useDashboard = () => {
   const [filters, setFilters] = useState<DashboardFilters>({
     dateRange: 'month'
   });
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<number | null>(null);
 
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
@@ -93,7 +94,7 @@ export const useDashboard = () => {
       // Update recent activity
       updateRecentActivity(sales, customers, products);
       
-      setLastRefresh(new Date());
+      setLastRefresh(getCurrentTimestamp());
       
       if (options?.force) {
         showSnackbar('Dashboard data refreshed successfully', 'success');
@@ -144,15 +145,15 @@ export const useDashboard = () => {
     // Add recent sales
     const recentSales = sales
       .filter(s => s.status === 'COMPLETED')
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort((a, b) => (b.created_at || 0) - (a.created_at || 0))
       .slice(0, 2);
 
     recentSales.forEach(sale => {
       activities.push({
-        id: `sale-${sale.id}`,
+        id: `sale-${sale.sale_id}`,
         type: 'order',
-        message: `New order from ${sale.customerName}`,
-        timestamp: new Date(sale.createdAt),
+        message: `New order from ${sale.customer_name || 'Customer'}`,
+        timestamp: sale.created_at || getCurrentTimestamp(),
         icon: 'cart',
         color: 'primary'
       });
@@ -160,15 +161,15 @@ export const useDashboard = () => {
 
     // Add recent customers
     const recentCustomers = customers
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort((a, b) => (b.created_at || 0) - (a.created_at || 0))
       .slice(0, 2);
 
     recentCustomers.forEach(customer => {
       activities.push({
-        id: `customer-${customer.id}`,
+        id: `customer-${customer.customer_id}`,
         type: 'customer',
-        message: `New customer: ${customer.name}`,
-        timestamp: new Date(customer.createdAt),
+        message: `New customer: ${customer.customer_name}`,
+        timestamp: customer.created_at || getCurrentTimestamp(),
         icon: 'people',
         color: 'success'
       });
@@ -184,14 +185,14 @@ export const useDashboard = () => {
         id: `stock-${product.id}`,
         type: 'inventory',
         message: `Low stock alert: ${product.name}`,
-        timestamp: new Date(),
+        timestamp: getCurrentTimestamp(),
         icon: 'warning',
         color: 'warning'
       });
     });
 
     // Sort by timestamp descending
-    activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    activities.sort((a, b) => b.timestamp - a.timestamp);
 
     setRecentActivity(activities.slice(0, 4));
   };

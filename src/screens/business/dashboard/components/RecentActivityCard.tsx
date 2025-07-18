@@ -13,6 +13,7 @@ import {
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { RecentActivity } from '../types';
+import { formatTimeAgo } from '@/utils/dateUtils';
 
 interface RecentActivityCardProps {
   activities: RecentActivity[];
@@ -37,20 +38,7 @@ const getActivityIcon = (iconType: string, color: string) => {
   }
 };
 
-const formatTimeAgo = (date: Date): string => {
-  const now = new Date();
-  const diffInMs = now.getTime() - date.getTime();
-  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-  const diffInDays = Math.floor(diffInHours / 24);
 
-  if (diffInHours < 1) {
-    return 'Just now';
-  } else if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-  } else {
-    return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-  }
-};
 
 export const RecentActivityCard: React.FC<RecentActivityCardProps> = ({ 
   activities

@@ -74,6 +74,12 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   return (
     <form onSubmit={handleSubmit}>
       <Grid container spacing={3}>
+        {/* Basic Information */}
+        <Grid item xs={12}>
+          <Typography variant="h6" gutterBottom>
+            Sale Information
+          </Typography>
+        </Grid>
         {/* Customer Selection */}
         <Grid item xs={12} md={6}>
           <Autocomplete
@@ -257,14 +263,14 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {formData.sale_details.length === 0 ? (
+                    {formData.saleDetails.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={canEdit ? 5 : 4} align="center">
                           No items added yet
                         </TableCell>
                       </TableRow>
                     ) : (
-                      formData.sale_details.map((item, index) => (
+                      formData.saleDetails.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell>{item.product_name}</TableCell>
                           <TableCell align="right">{item.quantity}</TableCell>
@@ -301,7 +307,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               <Button
                 type="submit"
                 variant="contained"
-                disabled={formData.sale_details.length === 0}
+                disabled={formData.saleDetails.length === 0}
               >
                 {mode === 'create' ? 'Create Sale' : 'Update Sale'}
               </Button>

@@ -4,6 +4,8 @@ import {
   DialogTitle,
   DialogContent,
   IconButton,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { PurchaseForm } from './PurchaseForm';
@@ -25,6 +27,9 @@ export const PurchaseDialog: React.FC<PurchaseDialogProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+
   const getTitle = () => {
     switch (mode) {
       case 'create':
@@ -38,17 +43,31 @@ export const PurchaseDialog: React.FC<PurchaseDialogProps> = ({
     }
   };
 
+  const getDialogWidth = () => {
+    return mode === 'view' ? 'lg' : 'xl';
+  };
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="lg"
+      maxWidth={getDialogWidth()}
       fullWidth
+      fullScreen={fullScreen}
       PaperProps={{
-        sx: { minHeight: '80vh' }
+        sx: {
+          minHeight: fullScreen ? '100vh' : '80vh',
+        },
       }}
     >
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pb: 2,
+        }}
+      >
         {getTitle()}
         <IconButton
           aria-label="close"
@@ -60,10 +79,11 @@ export const PurchaseDialog: React.FC<PurchaseDialogProps> = ({
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers>
+
+      <DialogContent dividers sx={{ p: 3 }}>
         <PurchaseForm
-          mode={mode}
           initialData={purchase || undefined}
+          mode={mode}
           onSubmit={onSubmit}
           onCancel={onClose}
         />

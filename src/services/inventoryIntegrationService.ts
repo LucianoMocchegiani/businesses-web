@@ -1,4 +1,5 @@
 import { LotCreationData, InventoryMovement } from '@/screens/business/purchases/types';
+import { Timestamp } from '@/utils/dateUtils';
 
 // NOTA: Este servicio utiliza mock data para simulación
 // En producción, debería conectarse a un sistema de inventario real
@@ -10,8 +11,8 @@ interface InventoryLot {
   quantity: number;
   available_quantity: number;
   unit_cost: number;
-  entry_date: Date;
-  expiration_date?: Date;
+  entry_date: Timestamp;
+  expiration_date?: Timestamp;
   supplier_id: string;
   purchase_id: string;
   location?: string;
@@ -27,7 +28,7 @@ interface StockMovement {
   unit_cost?: number;
   reference: string;
   performed_by: string;
-  timestamp: Date;
+  timestamp: Timestamp;
   notes?: string;
 }
 
@@ -94,7 +95,7 @@ class InventoryIntegrationService {
         unit_cost: movement.unit_cost,
         reference: movement.reference,
         performed_by: movement.performed_by,
-        timestamp: new Date(),
+        timestamp: Date.now(),
         notes: movement.notes
       };
       
@@ -137,7 +138,7 @@ class InventoryIntegrationService {
     try {
       const availableLots = mockInventoryLots
         .filter(lot => lot.product_id === productId && lot.status === 'ACTIVE' && lot.available_quantity > 0)
-        .sort((a, b) => a.entry_date.getTime() - b.entry_date.getTime()); // FIFO
+        .sort((a, b) => a.entry_date - b.entry_date); // FIFO
       
       let remainingQuantity = quantity;
       const consumedLots: InventoryLot[] = [];
@@ -200,13 +201,12 @@ class InventoryIntegrationService {
   
   // Obtener lotes próximos a expirar
   async getExpiringLots(days: number = 30): Promise<InventoryLot[]> {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() + days);
+    const cutoffTimestamp = Date.now() + (days * 24 * 60 * 60 * 1000);
     
     return mockInventoryLots.filter(lot => 
       lot.status === 'ACTIVE' && 
       lot.expiration_date && 
-      lot.expiration_date <= cutoffDate
+      lot.expiration_date <= cutoffTimestamp
     );
   }
   
@@ -216,7 +216,7 @@ class InventoryIntegrationService {
       ? mockStockMovements.filter(movement => movement.product_id === productId)
       : mockStockMovements;
     
-    return movements.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return movements.sort((a, b) => b.timestamp - a.timestamp);
   }
   
   // Métodos auxiliares privados

@@ -73,7 +73,7 @@ export const useSales = (): UseSalesReturn => {
         status: sale.status,
         created_at: sale.created_at,
         updated_at: sale.updated_at,
-        sale_details: sale.saleDetails || []
+        saleDetails: sale.saleDetails || []
       }));
 
       setSales(transformedData);
@@ -165,14 +165,12 @@ export const useSales = (): UseSalesReturn => {
       const saleData = {
         customer_id: data.customer_id,
         customer_name: data.customer_name,
-        total_amount: data.total_amount,
         status: data.status,
-        sale_details: data.sale_details.map(detail => ({
+        saleDetails: data.saleDetails.map(detail => ({
           product_id: detail.product_id,
           product_name: detail.product_name,
           quantity: detail.quantity,
           price: detail.price,
-          total_amount: detail.total_amount
         }))
       };
 

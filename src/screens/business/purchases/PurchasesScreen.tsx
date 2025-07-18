@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Button, Typography, Alert, Snackbar } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { ScreenContainer } from '@/components';
-import { PurchaseTable, PurchaseDialog, ReceivePurchaseDialog } from './components';
+import { PurchaseTable, PurchaseDialog } from './components';
 import { usePurchases } from './hooks';
 
 export const PurchasesScreen: React.FC = () => {
@@ -13,7 +13,6 @@ export const PurchasesScreen: React.FC = () => {
     dialogOpen,
     dialogMode,
     selectedPurchase,
-    receiveDialogOpen,
     
     // Snackbar
     snackbar,
@@ -21,16 +20,9 @@ export const PurchasesScreen: React.FC = () => {
     
     // Actions
     handleCreate,
-    handleEdit,
     handleView,
-    handleDelete,
     handleCancel,
-    handleMarkInTransit,
-    handleReceive,
-    handleComplete,
     handleCloseDialog,
-    handleCloseReceiveDialog,
-    handleReceiveSubmit,
     handleSubmit,
   } = usePurchases();
 
@@ -53,12 +45,7 @@ export const PurchasesScreen: React.FC = () => {
         purchases={purchases}
         loading={loading}
         onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
         onCancel={handleCancel}
-        onMarkInTransit={handleMarkInTransit}
-        onReceive={handleReceive}
-        onComplete={handleComplete}
       />
 
       <PurchaseDialog
@@ -67,13 +54,6 @@ export const PurchasesScreen: React.FC = () => {
         purchase={selectedPurchase}
         onClose={handleCloseDialog}
         onSubmit={handleSubmit}
-      />
-
-      <ReceivePurchaseDialog
-        open={receiveDialogOpen}
-        purchase={selectedPurchase}
-        onClose={handleCloseReceiveDialog}
-        onReceive={handleReceiveSubmit}
       />
 
       <Snackbar

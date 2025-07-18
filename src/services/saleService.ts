@@ -1,17 +1,16 @@
 import { apiService } from './apiService';
 import { SaleEntity, SaleStatus } from '@/types/business';
+import { Timestamp } from '@/utils/dateUtils';
 
 export interface CreateSaleRequest {
   customer_id?: string;
   customer_name?: string;
-  total_amount?: number;
   status?: SaleStatus;
-  sale_details: {
+  saleDetails: {
     product_id: string;
     product_name: string;
     quantity: number;
     price: number;
-    total_amount?: number;
   }[];
 }
 
@@ -28,8 +27,8 @@ export interface GetSalesParams {
   customer_name?: string;
   total_amount?: number;
   status?: SaleStatus;
-  created_at?: string;
-  updated_at?: string;
+  created_at?: Timestamp;
+  updated_at?: Timestamp;
 }
 
 export interface SalesResponse {
@@ -55,8 +54,8 @@ class SaleService {
       if (params.customer_name) queryParams.append('customer_name', params.customer_name);
       if (params.total_amount) queryParams.append('total_amount', params.total_amount.toString());
       if (params.status) queryParams.append('status', params.status);
-      if (params.created_at) queryParams.append('created_at', params.created_at);
-      if (params.updated_at) queryParams.append('updated_at', params.updated_at);
+      if (params.created_at) queryParams.append('created_at', params.created_at.toString());
+      if (params.updated_at) queryParams.append('updated_at', params.updated_at.toString());
       
       const queryString = queryParams.toString();
       const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;

@@ -27,7 +27,7 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
         customer_name: '',
         total_amount: 0,
         status: 'PENDING',
-        sale_details: [],
+        saleDetails: [],
         notes: '',
     });
 
@@ -46,7 +46,7 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
                 customer_name: initialData.customer_name || '',
                 total_amount: initialData.total_amount,
                 status: initialData.status,
-                sale_details: initialData.sale_details || [],
+                saleDetails: initialData.saleDetails || [],
                 notes: '',
             });
         }
@@ -71,13 +71,13 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
     // Function to handle product selection from search results
     const handleProductSelect = (product: ProductSearchResult) => {
         // Check if product is already in the list
-        const existingItemIndex = formData.sale_details.findIndex(
+        const existingItemIndex = formData.saleDetails.findIndex(
             item => item.product_id === product.id
         );
 
         if (existingItemIndex >= 0) {
             // Increase quantity if product already exists
-            const updatedDetails = [...formData.sale_details];
+            const updatedDetails = [...formData.saleDetails];
             updatedDetails[existingItemIndex] = {
                 ...updatedDetails[existingItemIndex],
                 quantity: updatedDetails[existingItemIndex].quantity + 1,
@@ -89,7 +89,7 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
                 handleCalculateTotal(updatedDetails);
                 return ({
                     ...prev,
-                    sale_details: updatedDetails,
+                    saleDetails: updatedDetails,
                 })
             });
 
@@ -105,10 +105,10 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
 
             setFormData(prev => {
                 // Calculate total when items change
-                handleCalculateTotal([...prev.sale_details, newSaleDetail]);
+                handleCalculateTotal([...prev.saleDetails, newSaleDetail]);
                 return ({
                     ...prev,
-                    sale_details: [...prev.sale_details, newSaleDetail],
+                    saleDetails: [...prev.saleDetails, newSaleDetail],
                 });
             });
         }
@@ -133,12 +133,12 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
     // Function to handle product change in the select
     const handleProductChange = (product: any) => {
         // Check if product is already in the list
-        const existingItemIndex = formData.sale_details.findIndex(
+        const existingItemIndex = formData.saleDetails.findIndex(
             item => item.product_id === product.id
         );
         if (existingItemIndex >= 0) {
             // If product already exists, set new item to that product
-            const existingItem = formData.sale_details[existingItemIndex];
+            const existingItem = formData.saleDetails[existingItemIndex];
             setNewItem({
                 product_id: existingItem.product_id,
                 product_name: existingItem.product_name,
@@ -176,12 +176,12 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
     const handleAddItem = () => {
         if (newItem.product_id && newItem.quantity && newItem.price) {
             // Check if product is already in the list
-            const existingItemIndex = formData.sale_details.findIndex(
+            const existingItemIndex = formData.saleDetails.findIndex(
                 item => item.product_id === newItem.product_id
             );
             if (existingItemIndex >= 0) {
                 // If product already exists, increase quantity
-                const updatedDetails = [...formData.sale_details];
+                const updatedDetails = [...formData.saleDetails];
                 updatedDetails[existingItemIndex] = {
                     ...updatedDetails[existingItemIndex],
                     quantity: (newItem.quantity || 1),
@@ -194,7 +194,7 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
                     handleCalculateTotal(updatedDetails);
                     return ({
                         ...prev,
-                        sale_details: updatedDetails,
+                        saleDetails: updatedDetails,
                     });
                 });
 
@@ -217,10 +217,10 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
 
                 setFormData(prev => {
                     // Calculate total when items change
-                    handleCalculateTotal([...prev.sale_details, item]);
+                    handleCalculateTotal([...prev.saleDetails, item]);
                     return ({
                         ...prev,
-                        sale_details: [...prev.sale_details, item],
+                        saleDetails: [...prev.saleDetails, item],
                     })
                 });
 
@@ -238,10 +238,10 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
     const handleRemoveItem = (index: number) => {
         setFormData(prev => {
             // Calculate total when items change
-            handleCalculateTotal(prev.sale_details.filter((_, i) => i !== index));
+            handleCalculateTotal(prev.saleDetails.filter((_, i) => i !== index));
             return ({
                 ...prev,
-                sale_details: prev.sale_details.filter((_, i) => i !== index),
+                saleDetails: prev.saleDetails.filter((_, i) => i !== index),
             })
         });
     };
