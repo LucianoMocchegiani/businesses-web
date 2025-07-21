@@ -25,10 +25,10 @@ export const useProducts = (): UseProductsReturn => {
 
   const { snackbar, showSnackbar, hideSnackbar } = useSnackbar();
 
-  const loadProducts = async () => {
+  const loadProducts  = async () => {
     try {
       setLoading(true);
-      const response = await productService.getAll({ limit: 1000, include_stock: true });
+      const response = await productService.getAll({ limit: 1000 });
       setProducts(response.data);
     } catch (error) {
       showSnackbar('Error loading products', 'error');

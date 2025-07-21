@@ -72,9 +72,9 @@ export const useProducts = (): UseProductsReturn => {
   };
 
   const handleDelete = async (product: Product) => {
-    if (window.confirm(`Are you sure you want to delete product "${product.name}"?`)) {
+    if (window.confirm(`Are you sure you want to delete product "${product.product_name}"?`)) {
       try {
-        await productService.delete(product.id);
+        await productService.delete(product.product_id);
         showSnackbar('Product deleted successfully', 'success');
         loadProducts();
       } catch (error) {
@@ -92,10 +92,30 @@ export const useProducts = (): UseProductsReturn => {
   const handleSubmit = async (data: ProductFormData) => {
     try {
       if (dialogMode === 'create') {
-        await productService.create(data as Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'currentStock'>);
+        // Mapear ProductFormData a la estructura esperada por el servicio
+        const productData: Omit<Product, 'product_id' | 'global_product_id' | 'business_product_id' | 'created_at' | 'updated_at'> = {
+          product_name: data.name,
+          product_description: data.description,
+          price: data.price,
+          cost: data.cost,
+          product_code: data.barcode,
+          category: data.category,
+          min_stock: data.min_stock,
+        };
+        await productService.create(productData);
         showSnackbar('Product created successfully', 'success');
       } else if (dialogMode === 'edit' && selectedProduct) {
-        await productService.update(selectedProduct.id, data);
+        // Mapear ProductFormData a la estructura esperada por el servicio
+        const productData: Partial<Product> = {
+          product_name: data.name,
+          product_description: data.description,
+          price: data.price,
+          cost: data.cost,
+          product_code: data.barcode,
+          category: data.category,
+          min_stock: data.min_stock,
+        };
+        await productService.update(selectedProduct.product_id, productData);
         showSnackbar('Product updated successfully', 'success');
       }
       handleCloseDialog();

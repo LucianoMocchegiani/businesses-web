@@ -65,24 +65,54 @@ class AuthService {
   }
 
   async register(data: RegisterData): Promise<LoginResponse> {
+    let firebaseUser: FirebaseUser | null = null;
+    
     try {
-      // Crear usuario en Firebase
+      // Paso 1: Crear usuario en Firebase
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         data.email,
         data.password
       );
-      const firebaseUser = userCredential.user;
+      firebaseUser = userCredential.user;
 
-      // Actualizar el perfil con el nombre completo
+      // Paso 2: Actualizar el perfil con el nombre completo
       await updateProfile(firebaseUser, {
         displayName: data.fullName
       });
 
-      // Obtener el token
+      // Paso 3: Obtener el token
       const token = await firebaseUser.getIdToken();
 
-      // Guardar token ANTES de hacer llamadas al backend
+      // Paso 4: Crear usuario en el backend
+      let backendUser;
+      try {
+        backendUser = await apiService.post('/users', {
+          firebase_uid: firebaseUser.uid,
+          full_name: data.fullName
+        });
+      } catch (backendError: any) {
+        console.error('Error creando usuario en backend:', backendError);
+        
+        // ROLLBACK: Si falla el backend, eliminar la cuenta de Firebase
+        try {
+          await firebaseUser.delete();
+          console.log('✅ Rollback exitoso: cuenta de Firebase eliminada');
+        } catch (deleteError) {
+          console.error('❌ Error en rollback:', deleteError);
+          // Si no podemos eliminar, al menos limpiar el estado local
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('firebaseUid');
+        }
+        
+        // Lanzar error específico del backend
+        throw new Error(
+          backendError.response?.data?.message || 
+          'Error al crear usuario en el servidor. Intenta nuevamente.'
+        );
+      }
+
+      // Paso 5: Solo guardar tokens si todo fue exitoso
       localStorage.setItem('authToken', token);
       localStorage.setItem('firebaseUid', firebaseUser.uid);
 
@@ -94,17 +124,18 @@ class AuthService {
         token
       };
 
-      // Crear usuario en el backend
-      const backendUser = await apiService.post('/users', {
-        firebase_uid: firebaseUser.uid,
-        full_name: data.fullName
-      });
-
       return { user: authUser, backendUser };
 
     } catch (error: any) {
       console.error('Error en registro:', error);
-      throw new Error(this.getFirebaseErrorMessage(error.code));
+      
+      // Si es un error de Firebase (no de backend), usar mensajes de Firebase
+      if (error.code && error.code.startsWith('auth/')) {
+        throw new Error(this.getFirebaseErrorMessage(error.code));
+      }
+      
+      // Si es un error del backend, ya se manejó arriba
+      throw error;
     }
   }
 

@@ -98,12 +98,21 @@ export const usePurchases = (): UsePurchasesReturn => {
     setDialogOpen(true);
   };
 
-  const handleView = (purchase: PurchaseEntity) => {
-    setSelectedPurchase(purchase);
-    setDialogMode('view');
-    setDialogOpen(true);
+  const handleView = async (purchase: PurchaseEntity) => {
+    try {
+      setLoading(true);
+      // Obtener el detalle completo de la compra con información de productos
+      const detailedPurchase = await purchaseService.getById(purchase.purchase_id.toString());
+      setSelectedPurchase(detailedPurchase);
+      setDialogMode('view');
+      setDialogOpen(true);
+    } catch (error) {
+      console.error('Error loading purchase details:', error);
+      showSnackbar('Error al cargar los detalles de la compra', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
-
 
   const handleCancel = async (purchase: PurchaseEntity) => {
     if (window.confirm(`¿Estás seguro de que deseas cancelar la compra de ${purchase.supplier_name || 'Proveedor sin nombre'}?`)) {
@@ -142,8 +151,7 @@ export const usePurchases = (): UsePurchasesReturn => {
 
       if (dialogMode === 'create') {
         await purchaseService.create({
-          supplier_id: data.supplier_id,
-          supplier_name: data.supplier_name,
+          supplier_id: data.supplier_id ? data.supplier_id.toString() : undefined,
           status: data.status as PurchaseStatus,
           purchaseDetails: transformedDetails
         });
@@ -151,8 +159,7 @@ export const usePurchases = (): UsePurchasesReturn => {
       } else if (dialogMode === 'edit' && selectedPurchase) {
         await purchaseService.update({
           purchase_id: selectedPurchase.purchase_id,
-          supplier_id: data.supplier_id,
-          supplier_name: data.supplier_name,
+          supplier_id: data.supplier_id ? data.supplier_id.toString() : undefined,
           status: data.status as PurchaseStatus,
           purchaseDetails: transformedDetails
         });

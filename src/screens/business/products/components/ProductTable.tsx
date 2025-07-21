@@ -30,7 +30,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
 }) => {
   const columns: GridColDef[] = [
     {
-      field: 'name',
+      field: 'product_name',
       headerName: 'Product Name',
       flex: 1,
       minWidth: 200,
@@ -48,10 +48,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       renderCell: (params) => params.value != null ? `$${params.value.toFixed(2)}` : '-',
     },
     {
-      field: 'cost',
-      headerName: 'Cost',
+      field: 'product_code',
+      headerName: 'Code',
       width: 120,
-      renderCell: (params) => params.value ? `$${params.value.toFixed(2)}` : '-',
+      renderCell: (params) => params.value || '-',
     },
     {
       field: 'stock',
@@ -120,7 +120,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
           rows={products}
           columns={columns}
           loading={loading}
-          getRowId={(row) => row.id}
+          getRowId={(row) => row.product_id}
           pageSizeOptions={[10, 25, 50]}
           initialState={{
             pagination: { paginationModel: { pageSize: 10 } },

@@ -40,10 +40,18 @@ export const RegisterScreen = () => {
     
     try {
       await register(email, password, fullName);
-      // navigate('/business');
+      navigate('/business-selection');
     } catch (error: any) {
       console.error('Register failed:', error);
-      setError(error.message || 'Error al crear la cuenta');
+      
+      // Mostrar mensajes de error más específicos
+      if (error.message.includes('servidor')) {
+        setError('Error de conexión con el servidor. Verifica tu internet e intenta nuevamente.');
+      } else if (error.message.includes('Firebase')) {
+        setError(error.message);
+      } else {
+        setError(error.message || 'Error al crear la cuenta');
+      }
     } finally {
       setLoading(false);
     }
@@ -123,7 +131,7 @@ export const RegisterScreen = () => {
           <Link
             component="button"
             variant="body2"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/auth/login')}
           >
             ¿Ya tienes cuenta? Inicia sesión
           </Link>

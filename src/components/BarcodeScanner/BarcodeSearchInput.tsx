@@ -22,9 +22,9 @@ import {
 } from '@mui/icons-material';
 
 export interface ProductSearchResult {
-  id: string;
-  name: string;
-  barcode: string;
+  product_id: string;
+  product_name: string;
+  product_code: string;
   price: number;
   stock: number;
   category?: string;
@@ -199,7 +199,7 @@ export const BarcodeSearchInput: React.FC<BarcodeSearchInputProps> = ({
         >
           <List dense>
             {searchResults.map((product) => (                <ListItem
-                  key={product.id}
+                  key={product.product_id}
                   component="div"
                   onClick={() => handleProductSelect(product)}
                   sx={{
@@ -218,7 +218,7 @@ export const BarcodeSearchInput: React.FC<BarcodeSearchInputProps> = ({
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="body2" fontWeight="medium">
-                        {product.name}
+                        {product.product_name}
                       </Typography>
                       {product.stock <= 5 && (
                         <Chip 
@@ -232,7 +232,7 @@ export const BarcodeSearchInput: React.FC<BarcodeSearchInputProps> = ({
                   secondary={
                     <Box>
                       <Typography variant="caption" color="text.secondary">
-                        Código: {product.barcode}
+                        Código: {product.product_code}
                       </Typography>
                       <br />
                       <Typography variant="caption" color="text.secondary">

@@ -6,6 +6,11 @@ export interface SaleDetailFormData {
   quantity: number;
   price: number;
   total_amount: number;
+  // Campos para integración con inventario
+  business_product_id?: string;
+  global_product_id?: string;
+  businessProduct?: any;
+  globalProduct?: any;
 }
 
 export interface SaleFormData {

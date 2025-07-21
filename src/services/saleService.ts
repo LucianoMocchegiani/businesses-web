@@ -45,7 +45,7 @@ class SaleService {
     try {
       // Construir query string directamente
       const queryParams = new URLSearchParams();
-      
+
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.order_by) queryParams.append('order_by', params.order_by);
@@ -56,10 +56,10 @@ class SaleService {
       if (params.status) queryParams.append('status', params.status);
       if (params.created_at) queryParams.append('created_at', params.created_at.toString());
       if (params.updated_at) queryParams.append('updated_at', params.updated_at.toString());
-      
+
       const queryString = queryParams.toString();
       const url = queryString ? `${this.endpoint}?${queryString}` : this.endpoint;
-      
+
       return apiService.get<SalesResponse>(url);
     } catch (error) {
       console.error('Error fetching sales:', error);
@@ -94,47 +94,13 @@ class SaleService {
     }
   }
 
-  async delete(id: string): Promise<void> {
-    try {
-      await apiService.delete(`${this.endpoint}/${id}`);
-    } catch (error) {
-      console.error('Error deleting sale:', error);
-      throw error;
-    }
-  }
-
   async cancel(id: string): Promise<SaleEntity> {
     try {
-      return apiService.put<SaleEntity>(`${this.endpoint}/${id}/cancel`, {});
+      return apiService.delete<SaleEntity>(`${this.endpoint}/${id}`);
     } catch (error) {
       console.error('Error canceling sale:', error);
       throw error;
     }
-  }
-
-  // Obtener ventas por estado
-  async getSalesByStatus(status: SaleStatus): Promise<SalesResponse> {
-    return this.getAll({ status });
-  }
-
-  // Obtener ventas por cliente
-  async getSalesByCustomer(customer_id: string): Promise<SalesResponse> {
-    return this.getAll({ customer_id });
-  }
-
-  // Verificar si una venta puede ser cancelada
-  canBeCanceled(sale: SaleEntity): boolean {
-    return ['PENDING', 'PROCESSING'].includes(sale.status);
-  }
-
-  // Obtener ventas completadas
-  async getCompletedSales(params?: Omit<GetSalesParams, 'status'>): Promise<SalesResponse> {
-    return this.getAll({ ...params, status: 'COMPLETED' });
-  }
-
-  // Obtener ventas pendientes
-  async getPendingSales(params?: Omit<GetSalesParams, 'status'>): Promise<SalesResponse> {
-    return this.getAll({ ...params, status: 'PENDING' });
   }
 }
 

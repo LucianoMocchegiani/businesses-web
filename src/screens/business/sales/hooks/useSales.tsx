@@ -113,10 +113,20 @@ export const useSales = (): UseSalesReturn => {
     setDialogOpen(true);
   };
 
-  const handleView = (sale: SaleEntity) => {
-    setSelectedSale(sale);
-    setDialogMode('view');
-    setDialogOpen(true);
+  const handleView = async (sale: SaleEntity) => {
+    try {
+      setLoading(true);
+      // Obtener el detalle completo de la venta con información de productos
+      const detailedSale = await saleService.getById(sale.sale_id.toString());
+      setSelectedSale(detailedSale);
+      setDialogMode('view');
+      setDialogOpen(true);
+    } catch (error) {
+      console.error('Error loading sale details:', error);
+      showSnackbar('Error al cargar los detalles de la venta', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (sale: SaleEntity) => {
@@ -127,7 +137,7 @@ export const useSales = (): UseSalesReturn => {
 
     if (window.confirm(`Are you sure you want to delete sale for ${sale.customer_name || 'Unknown Customer'}?`)) {
       try {
-        await saleService.delete(sale.sale_id);
+        await saleService.cancel(sale.sale_id);
         showSnackbar('Sale deleted successfully', 'success');
         loadSales();
       } catch (error) {

@@ -41,12 +41,26 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
 
     useEffect(() => {
         if (initialData) {
+            // Mapear los detalles de venta con fallbacks para campos opcionales
+            const mappedSaleDetails: SaleDetailFormData[] = (initialData.saleDetails || []).map(detail => ({
+                product_id: detail.product_id || '',
+                product_name: detail.product_name || '',
+                quantity: detail.quantity || 0,
+                price: detail.price || 0,
+                total_amount: detail.total_amount || 0,
+                // Campos adicionales del servidor con fallbacks
+                business_product_id: detail.business_product_id || detail.businessProduct?.business_product_id || '',
+                global_product_id: detail.global_product_id || detail.globalProduct?.global_product_id || '',
+                businessProduct: detail.businessProduct || null,
+                globalProduct: detail.globalProduct || null,
+            }));
+
             setFormData({
                 customer_id: initialData.customer_id || '',
                 customer_name: initialData.customer_name || '',
                 total_amount: initialData.total_amount,
                 status: initialData.status,
-                saleDetails: initialData.saleDetails || [],
+                saleDetails: mappedSaleDetails,
                 notes: '',
             });
         }
@@ -72,7 +86,7 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
     const handleProductSelect = (product: ProductSearchResult) => {
         // Check if product is already in the list
         const existingItemIndex = formData.saleDetails.findIndex(
-            item => item.product_id === product.id
+            item => item.product_id === product.product_id
         );
 
         if (existingItemIndex >= 0) {
@@ -96,8 +110,8 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
         } else {
             // Add new product to the list
             const newSaleDetail: SaleDetailFormData = {
-                product_id: product.id,
-                product_name: product.name,
+                product_id: product.product_id,
+                product_name: product.product_name,
                 quantity: 1,
                 price: product.price,
                 total_amount: product.price,
@@ -134,7 +148,7 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
     const handleProductChange = (product: any) => {
         // Check if product is already in the list
         const existingItemIndex = formData.saleDetails.findIndex(
-            item => item.product_id === product.id
+            item => item.product_id === product.product_id
         );
         if (existingItemIndex >= 0) {
             // If product already exists, set new item to that product
@@ -149,8 +163,8 @@ export const useSaleForm = ({ initialData }: UseSaleFormProps): UseSaleFormRetur
         } else if (product) {
             setNewItem(prev => ({
                 ...prev,
-                product_id: product.id,
-                product_name: product.name,
+                product_id: product.product_id,
+                product_name: product.product_name,
                 price: product.price,
                 total_amount: (prev.quantity || 1) * (product.price || 0),
             }));

@@ -66,7 +66,7 @@ class ProductService {
     return apiService.get<Product>(`${this.endpoint}/${id}`);
   }
 
-  async create(productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product> {
+  async create(productData: Omit<Product, 'product_id' | 'global_product_id' | 'business_product_id' | 'created_at' | 'updated_at'>): Promise<Product> {
     // Para crear productos, usamos el endpoint de business-products
     return apiService.post<Product>('/business-products', productData);
   }

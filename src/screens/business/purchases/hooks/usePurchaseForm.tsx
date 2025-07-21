@@ -50,19 +50,23 @@ export const usePurchaseForm = ({ initialData }: UsePurchaseFormProps): UsePurch
                 supplier_name: initialData.supplier_name || '',
                 total_amount: initialData.total_amount,
                 status: initialData.status,
-                purchaseDetails: initialData.purchaseDetails.map(detail => ({
-                    product_id: detail.product_id,
-                    product_name: detail.product_name,
-                    quantity_ordered: detail.quantity,
+                purchaseDetails: initialData.purchaseDetails?.map(detail => ({
+                    product_id: detail.product_id || detail.business_product_id || detail.global_product_id || '',
+                    product_name: detail.product_name || detail.businessProduct?.product_name || detail.globalProduct?.product_name || 'Producto sin nombre',
+                    quantity_ordered: detail.quantity || 0,
                     quantity_received: detail.quantity_received,
-                    price: detail.price,
-                    total_amount: detail.total_amount,
+                    price: detail.price || 0,
+                    total_amount: detail.total_amount || 0,
                     lot_number: detail.lot_number || '',
                     entry_date: detail.entry_date || getCurrentTimestamp(),
                     expiration_date: detail.expiration_date || undefined,
                     quality_check: detail.quality_check,
                     quality_notes: detail.quality_notes,
                     warehouse_location: detail.warehouse_location,
+                    business_product_id: detail.business_product_id,
+                    global_product_id: detail.global_product_id,
+                    businessProduct: detail.businessProduct,
+                    globalProduct: detail.globalProduct,
                 })) || [],
                 comments: '',
             });
@@ -88,7 +92,7 @@ export const usePurchaseForm = ({ initialData }: UsePurchaseFormProps): UsePurch
     const handleProductSelect = (product: ProductSearchResult) => {
         // Check if product is already in the list
         const existingItemIndex = formData.purchaseDetails.findIndex(
-            item => item.product_id === product.id
+            item => item.product_id === product.product_id
         );
 
         if (existingItemIndex >= 0) {
@@ -112,8 +116,8 @@ export const usePurchaseForm = ({ initialData }: UsePurchaseFormProps): UsePurch
         } else {
             // Add new product to the list
             const newPurchaseDetail: PurchaseDetailFormData = {
-                product_id: product.id,
-                product_name: product.name,
+                product_id: product.product_id,
+                product_name: product.product_name,
                 quantity_ordered: 1,
                 price: product.price,
                 total_amount: product.price,
@@ -137,8 +141,8 @@ export const usePurchaseForm = ({ initialData }: UsePurchaseFormProps): UsePurch
         if (supplier) {
             setFormData(prev => ({
                 ...prev,
-                supplier_id: supplier.id,
-                supplier_name: supplier.name,
+                supplier_id: supplier.supplier_id,
+                supplier_name: supplier.supplier_name,
             }));
         } else {
             setFormData(prev => ({
@@ -153,7 +157,7 @@ export const usePurchaseForm = ({ initialData }: UsePurchaseFormProps): UsePurch
     const handleProductChange = (product: any) => {
         // Check if product is already in the list
         const existingItemIndex = formData.purchaseDetails.findIndex(
-            item => item.product_id === product.id
+            item => item.product_id === product.product_id
         );
         if (existingItemIndex >= 0) {
             // If product already exists, set new item to that product
@@ -171,8 +175,8 @@ export const usePurchaseForm = ({ initialData }: UsePurchaseFormProps): UsePurch
         } else if (product) {
             setNewItem(prev => ({
                 ...prev,
-                product_id: product.id,
-                product_name: product.name,
+                product_id: product.product_id,
+                product_name: product.product_name,
                 price: product.price,
                 total_amount: (prev.quantity_ordered || 1) * (product.price || 0),
             }));

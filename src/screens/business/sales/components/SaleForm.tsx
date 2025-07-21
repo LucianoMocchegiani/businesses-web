@@ -21,6 +21,7 @@ import {
   Autocomplete,
   Box,
   Divider,
+  Chip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -184,9 +185,27 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                     <Autocomplete
                       options={products}
                       loading={productsLoading}
-                      getOptionLabel={(option) => option.name}
-                      value={products.find(p => p.id === newItem.product_id) || null}
+                      getOptionLabel={(option) => {
+                        const stockText = option.stock !== undefined ? ` (Stock: ${option.stock.quantity})` : '';
+                        return `${option.product_name}${stockText}`;
+                      }}
+                      value={products.find(p => p.product_id === newItem.product_id) || null}
                       onChange={(_, value) => handleProductChange(value)}
+                      renderOption={(props, option) => (
+                        <Box component="li" {...props}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                            <Typography>{option.product_name}</Typography>
+                            {option.stock !== undefined && (
+                              <Chip
+                                label={`Stock: ${option.stock.quantity}`}
+                                size="small"
+                                color={option.stock.quantity === 0 ? 'error' : option.stock.quantity <= option.stock.low_stock_threshold ? 'warning' : 'success'}
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
+                        </Box>
+                      )}
                       renderInput={(params) => (
                         <TextField
                           {...params}

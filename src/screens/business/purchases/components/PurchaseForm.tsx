@@ -183,8 +183,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                     <Autocomplete
                       options={products}
                       loading={productsLoading}
-                      getOptionLabel={(option) => option.name}
-                      value={products.find(p => p.id === newItem.product_id) || null}
+                      getOptionLabel={(option) => option.product_name || ''}
+                      value={products.find(p => p.product_id === newItem.product_id) || null}
                       onChange={(_, value) => handleProductChange(value)}
                       renderInput={(params) => (
                         <TextField
@@ -271,7 +271,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                     ) : (
                       formData.purchaseDetails.map((item, index) => (
                         <TableRow key={index}>
-                          <TableCell>{item.product_name}</TableCell>
+                          <TableCell>{item.product_name || item.businessProduct?.product_name || item.globalProduct?.product_name || 'N/A'}</TableCell>
                           <TableCell align="right">{item.quantity_ordered}</TableCell>
                           <TableCell align="right">
                             {isNaN(Number(item.price)) ? 'N/A' : `$${Number(item.price).toFixed(2)}`}

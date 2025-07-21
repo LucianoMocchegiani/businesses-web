@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components';
 import { useBusinessAuth } from '../../hooks/useBusinessAuth';
 
@@ -41,6 +43,18 @@ const businessNavData = [
 
 export const BusinessLayout = () => {
   const { logout, userData } = useBusinessAuth();
+  const navigate = useNavigate();
+
+  // Validar que el usuario tenga un negocio seleccionado
+  useEffect(() => {
+    const businessId = localStorage.getItem('selectedBusinessId');
+    const profileId = localStorage.getItem('selectedProfileId');
+    
+    if (!businessId || !profileId) {
+      console.log('No business selected, redirecting to business selection...');
+      navigate('/business-selection', { replace: true });
+    }
+  }, [navigate]);
 
   return (
     <Layout

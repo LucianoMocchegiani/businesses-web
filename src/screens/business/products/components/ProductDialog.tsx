@@ -44,11 +44,11 @@ export const ProductDialog: React.FC<ProductDialogProps> = ({
     if (open) {
       if (product) {
         reset({
-          name: product.name,
-          description: product.description || '',
+          name: product.product_name,
+          description: product.product_description || '',
           price: product.price,
           cost: product.cost || 0,
-          barcode: product.barcode || '',
+          barcode: product.product_code || '',
           category: product.category,
           min_stock: product.min_stock || 0,
         });

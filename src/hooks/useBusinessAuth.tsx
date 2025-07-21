@@ -19,7 +19,7 @@ export const useBusinessAuth = () => {
             setSelectedBusinessId(null);
             
             // Redirigir al login usando React Router
-            navigate('/login', { replace: true });
+            navigate('/auth/login', { replace: true });
         };
 
         apiService.setTokenExpiredHandler(handleTokenExpired);

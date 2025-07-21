@@ -86,7 +86,7 @@ export const LoginScreen = () => {
           <Link
             component="button"
             variant="body2"
-            onClick={() => navigate('/register')}
+            onClick={() => navigate('/auth/register')}
           >
             ¿No tienes cuenta? Regístrate
           </Link>
